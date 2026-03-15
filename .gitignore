@@ -44,6 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# TTS model files — downloaded automatically by setup-threadcast-env.ps1
+# TTS model files ï¿½ downloaded automatically by setup-threadcast-env.ps1
 assets/tts_models/
 kokoro-en-v0_19/
+android/build/reports/problems/problems-report.html
