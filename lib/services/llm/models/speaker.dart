@@ -1,0 +1,1 @@
+// Speaker model is implemented in transcript.dart
