@@ -60,10 +60,8 @@ Analyze the post and comments and return a JSON object with the following struct
     required Map<String, dynamic> analysis,
   }) {
     final selectedIds = (analysis['selected_comment_ids'] as List).cast<String>().toSet();
-    final selectedComments = posts
-        .expand((p) => _flattenComments(p.comments))
-        .where((c) => selectedIds.contains(c.id))
-        .toList();
+    final selectedComments =
+        posts.expand((p) => _flattenComments(p.comments)).where((c) => selectedIds.contains(c.id)).toList();
 
     return '''
 You are converting a Reddit post and selected comments into a podcast transcript.

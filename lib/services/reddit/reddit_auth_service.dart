@@ -13,5 +13,4 @@ class RedditAuthService {
   Future<void> authenticate() async {
     // Stub OAuth flow
   }
-
 }

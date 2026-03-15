@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'core/constants.dart';
 import 'features/create/create_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/player/player_screen.dart';
-import 'core/constants.dart';
 
 class ThreadcastApp extends StatelessWidget {
   const ThreadcastApp({super.key});
@@ -38,7 +39,7 @@ final _router = GoRouter(
     if (AppConstants.redditClientId.isEmpty) {
       return null;
     }
-    
+
     // Production mode: check if user has valid Reddit token
     // TODO: Implement token check when RedditAuthService is fully implemented
     // For now, assume no token in production mode

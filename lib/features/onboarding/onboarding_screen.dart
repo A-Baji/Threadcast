@@ -22,8 +22,7 @@ class OnboardingScreen extends ConsumerWidget {
                   : null,
               child: const Text('Connect Reddit'),
             ),
-            if (state.status == OnboardingStatus.loading)
-              const CircularProgressIndicator(),
+            if (state.status == OnboardingStatus.loading) const CircularProgressIndicator(),
             if (state.error != null) Text('Error: ${state.error}'),
           ],
         ),

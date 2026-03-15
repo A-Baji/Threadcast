@@ -10,21 +10,18 @@ class RedditScraper {
   RedditScraper(this._dio, this._auth);
 
   // True when a client ID is configured and an OAuth token is available
-  bool get _isAuthenticated =>
-      AppConstants.redditClientId.isNotEmpty && _auth.hasValidToken;
+  bool get _isAuthenticated => AppConstants.redditClientId.isNotEmpty && _auth.hasValidToken;
 
   /// Fetch and parse a single Reddit post.
   /// Automatically uses the OAuth API when credentials are available,
   /// falling back to the public .json endpoint for development.
   Future<RedditPost> fetchPost(String url) async {
     final postId = _extractPostId(url);
-    final endpoint = _isAuthenticated
-        ? 'https://oauth.reddit.com/comments/$postId'
-        : 'https://www.reddit.com/comments/$postId.json';
+    final endpoint =
+        _isAuthenticated ? 'https://oauth.reddit.com/comments/$postId' : 'https://www.reddit.com/comments/$postId.json';
 
     final headers = _isAuthenticated
-        ? {'Authorization': 'Bearer ${await _auth.getAccessToken()}',
-           'User-Agent': AppConstants.redditUserAgent}
+        ? {'Authorization': 'Bearer ${await _auth.getAccessToken()}', 'User-Agent': AppConstants.redditUserAgent}
         : {'User-Agent': AppConstants.redditUserAgent};
 
     final response = await _dio.get(

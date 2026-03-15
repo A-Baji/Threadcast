@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'create_provider.dart';
 
 class CreateScreen extends ConsumerWidget {
@@ -26,12 +27,13 @@ class CreateScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: state.status == CreateStatus.idle
-                  ? () => ref.read(createProvider.notifier).generatePodcast(['https://www.reddit.com/r/AITAH/comments/example/'])
+                  ? () => ref
+                      .read(createProvider.notifier)
+                      .generatePodcast(['https://www.reddit.com/r/AITAH/comments/example/'])
                   : null,
               child: const Text('Generate (Mock)'),
             ),
-            if (state.status == CreateStatus.synthesizing)
-              LinearProgressIndicator(value: state.progress),
+            if (state.status == CreateStatus.synthesizing) LinearProgressIndicator(value: state.progress),
             Text('Status: ${state.status}'),
           ],
         ),

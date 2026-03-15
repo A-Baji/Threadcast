@@ -6,10 +6,10 @@ part 'episode.g.dart';
 class Episode {
   Id id = Isar.autoIncrement;
 
-  late String episodeId;          // UUID
+  late String episodeId; // UUID
   late String title;
   late String subreddit;
-  late List<String> sourceUrls;   // Original Reddit URLs (ordered)
+  late List<String> sourceUrls; // Original Reddit URLs (ordered)
   late String tone;
 
   late DateTime createdAt;
@@ -18,11 +18,11 @@ class Episode {
   // File paths (relative to app documents dir)
   String? audioWavPath;
   String? audioMp3Path;
-  String? transcriptJsonPath;    // Full transcript JSON for transcript view
+  String? transcriptJsonPath; // Full transcript JSON for transcript view
 
   // Generation state
   @enumerated
-  late EpisodeStatus status;     // pending | generating | complete | failed
+  late EpisodeStatus status; // pending | generating | complete | failed
 
   String? errorMessage;
 }

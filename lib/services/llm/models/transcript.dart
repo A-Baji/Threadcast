@@ -15,9 +15,9 @@ class Transcript {
 }
 
 class Speaker {
-  final String id;          // "op", "speaker_2", etc.
+  final String id; // "op", "speaker_2", etc.
   final String? redditUsername;
-  final String role;        // "main_speaker" | "commenter"
+  final String role; // "main_speaker" | "commenter"
   final String personalityNotes;
   final String voiceGender; // "male" | "female" | "neutral"
   final String assignedVoice; // Set during voice assignment (Kokoro voice name)
@@ -86,7 +86,7 @@ class TranscriptSegment {
 }
 
 class DeliveryInstructions {
-  final String pace;         // "normal" | "slow" | "fast"
+  final String pace; // "normal" | "slow" | "fast"
   final String emotion;
   final int pauseBeforeMs;
   final bool overlapPrevious;

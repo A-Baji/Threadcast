@@ -6,8 +6,7 @@ class AppConstants {
   static const redditRedirectUri = 'threadcast://oauth/callback';
 
   // TODO: replace YOUR_REDDIT_USERNAME before going to production
-  static const redditUserAgent =
-      'ios:com.threadcast.app:v1.0.0 (by /u/YOUR_REDDIT_USERNAME)';
+  static const redditUserAgent = 'ios:com.threadcast.app:v1.0.0 (by /u/YOUR_REDDIT_USERNAME)';
 
   static const redditScopes = 'read identity';
 }

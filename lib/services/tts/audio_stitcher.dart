@@ -1,5 +1,6 @@
-import 'package:path_provider/path_provider.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+import 'package:path_provider/path_provider.dart';
+
 import '../llm/models/transcript.dart';
 
 class AudioStitcher {
@@ -48,8 +49,7 @@ class AudioStitcher {
 
   String _buildFfmpegCommand(List<_SegmentTiming> timing, String outputPath) {
     final inputs = timing.map((t) => '-i "${t.filePath}"').join(' ');
-    final delays = timing.mapIndexed((i, t) =>
-        '[$i:a]adelay=${t.startMs}|${t.startMs}[s$i]').join(';');
+    final delays = timing.mapIndexed((i, t) => '[$i:a]adelay=${t.startMs}|${t.startMs}[s$i]').join(';');
     final mix = '${timing.mapIndexed((i, _) => '[s$i]').join('')}amix=inputs=${timing.length}:normalize=0[out]';
 
     return '$inputs -filter_complex "$delays;$mix" -map "[out]" '

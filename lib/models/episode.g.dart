@@ -172,9 +172,7 @@ Episode _episodeDeserialize(
   object.errorMessage = reader.readStringOrNull(offsets[5]);
   object.id = id;
   object.sourceUrls = reader.readStringList(offsets[6]) ?? [];
-  object.status =
-      _EpisodestatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
-          EpisodeStatus.pending;
+  object.status = _EpisodestatusValueEnumMap[reader.readByteOrNull(offsets[7])] ?? EpisodeStatus.pending;
   object.subreddit = reader.readString(offsets[8]);
   object.title = reader.readString(offsets[9]);
   object.tone = reader.readString(offsets[10]);
@@ -204,8 +202,7 @@ P _episodeDeserializeProp<P>(
     case 6:
       return (reader.readStringList(offset) ?? []) as P;
     case 7:
-      return (_EpisodestatusValueEnumMap[reader.readByteOrNull(offset)] ??
-          EpisodeStatus.pending) as P;
+      return (_EpisodestatusValueEnumMap[reader.readByteOrNull(offset)] ?? EpisodeStatus.pending) as P;
     case 8:
       return (reader.readString(offset)) as P;
     case 9:
@@ -284,8 +281,7 @@ extension EpisodeQueryWhere on QueryBuilder<Episode, Episode, QWhereClause> {
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Episode, Episode, QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -293,8 +289,7 @@ extension EpisodeQueryWhere on QueryBuilder<Episode, Episode, QWhereClause> {
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Episode, Episode, QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -319,8 +314,7 @@ extension EpisodeQueryWhere on QueryBuilder<Episode, Episode, QWhereClause> {
   }
 }
 
-extension EpisodeQueryFilter
-    on QueryBuilder<Episode, Episode, QFilterCondition> {
+extension EpisodeQueryFilter on QueryBuilder<Episode, Episode, QFilterCondition> {
   QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -329,8 +323,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      audioMp3PathIsNotNull() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'audioMp3Path',
@@ -426,8 +419,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathContains(
-      String value,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -438,8 +430,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathMatches(
-      String pattern,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -459,8 +450,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      audioMp3PathIsNotEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'audioMp3Path',
@@ -477,8 +467,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      audioWavPathIsNotNull() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'audioWavPath',
@@ -574,8 +563,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathContains(
-      String value,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -586,8 +574,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathMatches(
-      String pattern,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -607,8 +594,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      audioWavPathIsNotEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'audioWavPath',
@@ -617,8 +603,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtEqualTo(
-      DateTime value) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'createdAt',
@@ -670,8 +655,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsEqualTo(
-      int value) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'durationSeconds',
@@ -680,8 +664,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      durationSecondsGreaterThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -812,9 +795,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'episodeId',
@@ -824,9 +805,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'episodeId',
@@ -862,8 +841,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      errorMessageIsNotNull() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'errorMessage',
@@ -959,8 +937,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageContains(
-      String value,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -971,8 +948,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageMatches(
-      String pattern,
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -992,8 +968,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      errorMessageIsNotEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'errorMessage',
@@ -1054,8 +1029,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementEqualTo(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1068,8 +1042,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementGreaterThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1084,8 +1057,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementLessThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1100,8 +1072,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementBetween(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1120,8 +1091,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementStartsWith(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1134,8 +1104,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementEndsWith(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1148,8 +1117,8 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementContains(String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'sourceUrls',
@@ -1159,8 +1128,8 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementMatches(String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'sourceUrls',
@@ -1170,8 +1139,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementIsEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'sourceUrls',
@@ -1180,8 +1148,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsElementIsNotEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'sourceUrls',
@@ -1190,8 +1157,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthEqualTo(
-      int length) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'sourceUrls',
@@ -1227,8 +1193,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsLengthLessThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthLessThan(
     int length, {
     bool include = false,
   }) {
@@ -1243,8 +1208,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      sourceUrlsLengthGreaterThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
@@ -1276,8 +1240,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusEqualTo(
-      EpisodeStatus value) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusEqualTo(EpisodeStatus value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'status',
@@ -1417,9 +1380,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'subreddit',
@@ -1429,9 +1390,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'subreddit',
@@ -1547,9 +1506,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'title',
@@ -1559,9 +1516,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'title',
@@ -1677,9 +1632,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'tone',
@@ -1689,9 +1642,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'tone',
@@ -1719,8 +1670,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathIsNull() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'transcriptJsonPath',
@@ -1728,8 +1678,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathIsNotNull() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'transcriptJsonPath',
@@ -1737,8 +1686,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathEqualTo(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1751,8 +1699,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathGreaterThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1767,8 +1714,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathLessThan(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1783,8 +1729,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathBetween(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1803,8 +1748,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathStartsWith(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1817,8 +1761,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathEndsWith(
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1831,8 +1774,8 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathContains(String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'transcriptJsonPath',
@@ -1842,8 +1785,8 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathMatches(String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'transcriptJsonPath',
@@ -1853,8 +1796,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathIsEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'transcriptJsonPath',
@@ -1863,8 +1805,7 @@ extension EpisodeQueryFilter
     });
   }
 
-  QueryBuilder<Episode, Episode, QAfterFilterCondition>
-      transcriptJsonPathIsNotEmpty() {
+  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'transcriptJsonPath',
@@ -1874,11 +1815,9 @@ extension EpisodeQueryFilter
   }
 }
 
-extension EpisodeQueryObject
-    on QueryBuilder<Episode, Episode, QFilterCondition> {}
+extension EpisodeQueryObject on QueryBuilder<Episode, Episode, QFilterCondition> {}
 
-extension EpisodeQueryLinks
-    on QueryBuilder<Episode, Episode, QFilterCondition> {}
+extension EpisodeQueryLinks on QueryBuilder<Episode, Episode, QFilterCondition> {}
 
 extension EpisodeQuerySortBy on QueryBuilder<Episode, Episode, QSortBy> {
   QueryBuilder<Episode, Episode, QAfterSortBy> sortByAudioMp3Path() {
@@ -2014,8 +1953,7 @@ extension EpisodeQuerySortBy on QueryBuilder<Episode, Episode, QSortBy> {
   }
 }
 
-extension EpisodeQuerySortThenBy
-    on QueryBuilder<Episode, Episode, QSortThenBy> {
+extension EpisodeQuerySortThenBy on QueryBuilder<Episode, Episode, QSortThenBy> {
   QueryBuilder<Episode, Episode, QAfterSortBy> thenByAudioMp3Path() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'audioMp3Path', Sort.asc);
@@ -2161,17 +2099,14 @@ extension EpisodeQuerySortThenBy
   }
 }
 
-extension EpisodeQueryWhereDistinct
-    on QueryBuilder<Episode, Episode, QDistinct> {
-  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioMp3Path(
-      {bool caseSensitive = true}) {
+extension EpisodeQueryWhereDistinct on QueryBuilder<Episode, Episode, QDistinct> {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioMp3Path({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'audioMp3Path', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioWavPath(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioWavPath({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'audioWavPath', caseSensitive: caseSensitive);
     });
@@ -2189,15 +2124,13 @@ extension EpisodeQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByEpisodeId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByEpisodeId({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'episodeId', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByErrorMessage(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByErrorMessage({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'errorMessage', caseSensitive: caseSensitive);
     });
@@ -2215,38 +2148,32 @@ extension EpisodeQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctBySubreddit(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctBySubreddit({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'subreddit', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTitle(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByTitle({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTone(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByTone({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'tone', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTranscriptJsonPath(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Episode, Episode, QDistinct> distinctByTranscriptJsonPath({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'transcriptJsonPath',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'transcriptJsonPath', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension EpisodeQueryProperty
-    on QueryBuilder<Episode, Episode, QQueryProperty> {
+extension EpisodeQueryProperty on QueryBuilder<Episode, Episode, QQueryProperty> {
   QueryBuilder<Episode, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -2319,8 +2246,7 @@ extension EpisodeQueryProperty
     });
   }
 
-  QueryBuilder<Episode, String?, QQueryOperations>
-      transcriptJsonPathProperty() {
+  QueryBuilder<Episode, String?, QQueryOperations> transcriptJsonPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'transcriptJsonPath');
     });

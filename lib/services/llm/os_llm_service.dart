@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
-import 'llm_service.dart';
+
 import '../reddit/models/reddit_post.dart';
+import 'llm_service.dart';
 
 class OsLlmService implements LlmService {
   static const _channel = MethodChannel('com.threadcast.app/llm');
@@ -66,22 +68,12 @@ class OsLlmService implements LlmService {
       {
         "speaker_id": "op",
         "text": "This is a mock transcript segment from the OP.",
-        "delivery": {
-          "pace": "normal",
-          "emotion": "calm",
-          "pause_before_ms": 0,
-          "overlap_previous": false
-        }
+        "delivery": {"pace": "normal", "emotion": "calm", "pause_before_ms": 0, "overlap_previous": false}
       },
       {
         "speaker_id": "speaker_2",
         "text": "And this is a mock response from a commenter.",
-        "delivery": {
-          "pace": "normal",
-          "emotion": "excited",
-          "pause_before_ms": 500,
-          "overlap_previous": false
-        }
+        "delivery": {"pace": "normal", "emotion": "excited", "pause_before_ms": 500, "overlap_previous": false}
       }
     ]);
   }

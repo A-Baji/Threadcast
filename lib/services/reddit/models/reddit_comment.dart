@@ -3,10 +3,10 @@ class RedditComment {
   final String authorName;
   final String body;
   final int score;
-  final int depth;             // 0 = top-level, 1 = reply, 2 = reply-to-reply
-  final String? parentId;      // null if top-level
+  final int depth; // 0 = top-level, 1 = reply, 2 = reply-to-reply
+  final String? parentId; // null if top-level
   final List<RedditComment> replies;
-  final bool isOp;             // True if authorName == post author
+  final bool isOp; // True if authorName == post author
 
   RedditComment({
     required this.id,

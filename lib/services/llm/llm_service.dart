@@ -7,7 +7,7 @@ abstract class LlmService {
   /// Generates a structured transcript from scraped Reddit data.
   /// Streams progress events for UI updates.
   Stream<LlmProgress> generateTranscript({
-    required List<RedditPost> posts,   // Ordered list (multi-part support)
+    required List<RedditPost> posts, // Ordered list (multi-part support)
     required String episodeId,
   });
 
@@ -16,8 +16,8 @@ abstract class LlmService {
 }
 
 enum LlmProgress {
-  analyzing,      // Personality + tone analysis phase
-  writing,        // Transcript generation phase
+  analyzing, // Personality + tone analysis phase
+  writing, // Transcript generation phase
   complete,
   failed,
 }

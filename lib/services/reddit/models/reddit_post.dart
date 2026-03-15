@@ -4,7 +4,7 @@ class RedditPost {
   final String id;
   final String subreddit;
   final String title;
-  final String selftext;       // Full post body
+  final String selftext; // Full post body
   final String authorName;
   final int score;
   final int numComments;

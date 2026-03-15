@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../core/providers.dart';
 import '../../models/episode.dart';
 import '../../services/llm/models/transcript.dart';
@@ -52,9 +53,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
           .toList();
 
       // 5. Assign voices
-      final speakers = (analysis['speakers'] as List)
-          .map((s) => Speaker.fromJson(s as Map<String, dynamic>))
-          .toList();
+      final speakers = (analysis['speakers'] as List).map((s) => Speaker.fromJson(s as Map<String, dynamic>)).toList();
       final voiceMap = VoiceAssignment.assignVoices(speakers);
 
       // 6. TTS synthesis — STREAMING PIPELINE
@@ -106,7 +105,6 @@ class CreateNotifier extends StateNotifier<CreateState> {
       await isar.writeTxn(() => isar.episodes.put(episode));
 
       state = CreateState.complete(episode: episode);
-
     } catch (e) {
       state = CreateState.failed(error: e.toString());
     }
@@ -125,7 +123,8 @@ class CreateState {
   const CreateState.synthesizing(double progress, String currentSpeaker, {String? partialAudioPath})
       : this._(CreateStatus.synthesizing, progress, currentSpeaker, partialAudioPath, null, null);
   const CreateState.stitching() : this._(CreateStatus.stitching, null, null, null, null, null);
-  const CreateState.complete({required Episode episode}) : this._(CreateStatus.complete, null, null, null, episode, null);
+  const CreateState.complete({required Episode episode})
+      : this._(CreateStatus.complete, null, null, null, episode, null);
   const CreateState.failed({required String error}) : this._(CreateStatus.failed, null, null, null, null, error);
 
   final CreateStatus status;
