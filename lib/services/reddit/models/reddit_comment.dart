@@ -19,17 +19,35 @@ class RedditComment {
     required this.isOp,
   });
 
-  factory RedditComment.fromJson(Map<String, dynamic> json) {
-    // Stub implementation
+  factory RedditComment.fromJson(Map<String, dynamic> json, String opUsername) {
+    List<RedditComment> parseReplies(dynamic replies) {
+      if (replies is String || replies == null) {
+        return [];
+      }
+
+      final listing = replies as Map<String, dynamic>;
+      final children = (listing['data']?['children'] as List?) ?? const [];
+
+      return children
+          .where((child) => child is Map && child['kind'] == 't1')
+          .map(
+            (child) => RedditComment.fromJson(
+              Map<String, dynamic>.from((child as Map)['data'] as Map),
+              opUsername,
+            ),
+          )
+          .toList();
+    }
+
     return RedditComment(
-      id: json['id'],
-      authorName: json['author'],
-      body: json['body'],
-      score: json['score'],
-      depth: json['depth'] ?? 0,
-      parentId: json['parent_id'],
-      replies: [], // Parse replies
-      isOp: false, // Determine based on post author
+      id: json['id']?.toString() ?? '',
+      authorName: json['author']?.toString() ?? '[deleted]',
+      body: json['body']?.toString() ?? '',
+      score: (json['score'] as num?)?.toInt() ?? 0,
+      depth: (json['depth'] as num?)?.toInt() ?? 0,
+      parentId: json['parent_id']?.toString(),
+      replies: parseReplies(json['replies']),
+      isOp: (json['author']?.toString() ?? '') == opUsername,
     );
   }
 
