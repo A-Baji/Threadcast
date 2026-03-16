@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:threadcast/core/errors.dart';
+
 import '../../core/constants.dart';
-import 'reddit_auth_service.dart';
 import 'models/reddit_post.dart';
+import 'reddit_auth_service.dart';
 
 class RedditScraper {
   final Dio _dio;
@@ -16,6 +18,8 @@ class RedditScraper {
   /// Automatically uses the OAuth API when credentials are available,
   /// falling back to the public .json endpoint for development.
   Future<RedditPost> fetchPost(String url) async {
+    if (!_isValidRedditUrl(url)) throw const FormatException(ThreadcastError.invalidUrl);
+
     final postId = _extractPostId(url);
     final endpoint =
         _isAuthenticated ? 'https://oauth.reddit.com/comments/$postId' : 'https://www.reddit.com/comments/$postId.json';
@@ -24,19 +28,30 @@ class RedditScraper {
         ? {'Authorization': 'Bearer ${await _auth.getAccessToken()}', 'User-Agent': AppConstants.redditUserAgent}
         : {'User-Agent': AppConstants.redditUserAgent};
 
-    final response = await _dio.get(
-      endpoint,
-      options: Options(headers: headers),
-      queryParameters: {
-        'sort': 'top',
-        'limit': 100,
-        'depth': 3,
-        'raw_json': 1,
-      },
-    );
+    try {
+      final response = await _dio.get(
+        endpoint,
+        options: Options(headers: headers),
+        queryParameters: {
+          'sort': 'top',
+          'limit': 100,
+          'depth': 3,
+          'raw_json': 1,
+        },
+      );
+      if (response.statusCode == 429) throw Exception(ThreadcastError.redditRateLimited);
 
-    // Both endpoints return a 2-element array: [postData, commentsData]
-    return RedditPost.fromJson(response.data[0], response.data[1]);
+      // Both endpoints return a 2-element array: [postData, commentsData]
+      return RedditPost.fromJson(response.data[0], response.data[1]);
+    } on DioException catch (e) {
+      throw Exception('${ThreadcastError.generationFailed}: ${e.message}');
+    }
+  }
+
+  bool _isValidRedditUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    return uri.host.contains('reddit.com') || uri.host == 'redd.it';
   }
 
   /// Extract the post ID from any Reddit URL format.
