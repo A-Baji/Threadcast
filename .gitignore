@@ -18,10 +18,9 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code — launch configs are developer-local, but settings.json is committed
+# intentionally (format-on-save rules shared across the team).
+# .vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -39,12 +38,18 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android Studio build artifacts
 /android/app/debug
 /android/app/profile
 /android/app/release
+android/build/reports/
 
-# TTS model files � downloaded automatically by setup-threadcast-env.ps1
+# TTS model files — large binaries downloaded by setup-threadcast-env.ps1.
+# Never commit these; they are installed locally by the setup script.
 assets/tts_models/
 kokoro-en-v0_19/
-android/build/reports/problems/problems-report.html
+
+# Script backup files — created by migrate-dependencies.ps1 and
+# setup-threadcast-env.ps1 as safety copies before overwriting Dart files.
+# They are transient developer safety nets, not source-controlled artifacts.
+*.bak

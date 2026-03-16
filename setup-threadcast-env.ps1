@@ -670,11 +670,11 @@ dependencies:
   # ffmpeg_kit_flutter_new is the original author's recommended community fork.
   # IMPORTANT: The first Gradle build will fail (AAR download incomplete).
   #            Run `flutter run` a second time and it will succeed.
-  ffmpeg_kit_flutter_new: ^2.0.0
+  ffmpeg_kit_flutter_new: ^4.1.0
 
   # Database -- drift replaces unmaintained isar (abandoned 2023).
   # drift is actively maintained by simolus3 and widely used.
-  drift: ^2.20.0
+  drift: ^2.28.0
   drift_flutter: ^0.2.0     # handles SQLite native libs on Android + iOS
   path_provider: ^2.1.0
 
@@ -690,7 +690,7 @@ dev_dependencies:
     sdk: flutter
   riverpod_generator: ^2.4.0
   build_runner: ^2.4.0      # used by both riverpod_generator and drift_dev
-  drift_dev: ^2.20.0        # drift code generator (replaces isar_generator)
+  drift_dev: ^2.28.0        # drift code generator (replaces isar_generator)
   flutter_lints: ^4.0.0
   # analyzer is intentionally not pinned -- drift_dev and riverpod_generator
   # both require analyzer ^6.x or ^7.x and pub resolves it automatically.
@@ -966,6 +966,17 @@ class LlmPlugin: NSObject, FlutterPlugin {
     $manifestPath = Join-Path $projectDir 'android\app\src\main\AndroidManifest.xml'
     if (Test-Path $manifestPath) {
         $manifest = Get-Content $manifestPath -Raw
+        # Deduplicate any extra deep-link intent-filters from previous runs
+        # (keep only first occurrence between the </intent-filter> boundary)
+        $deepLinkBlock = '(?s)(\s*<intent-filter android:autoVerify="true">\s*<action android:name="android\.intent\.action\.VIEW"/>.*?</intent-filter>)'
+        $matches_ = [regex]::Matches($manifest, $deepLinkBlock)
+        if ($matches_.Count -gt 1) {
+            # Remove all but the first deep-link filter
+            for ($di = $matches_.Count - 1; $di -ge 1; $di--) {
+                $manifest = $manifest.Remove($matches_[$di].Index, $matches_[$di].Length)
+            }
+            Set-Content -Path $manifestPath -Value $manifest -NoNewline
+        }
 
         foreach ($perm in @(
             'android.permission.INTERNET',
@@ -985,8 +996,9 @@ class LlmPlugin: NSObject, FlutterPlugin {
                 <data android:scheme="threadcast" android:host="oauth"/>
             </intent-filter>
 '@
-        # Only add if not already present
-        if ($manifest -notmatch 'scheme="threadcast"') {
+        # Only add if not already present (re-read to catch partial prior writes)
+        $manifest = Get-Content $manifestPath -Raw
+        if ($manifest -notmatch 'scheme=.threadcast.') {
             $manifest = $manifest -replace '(</activity>)', "$deepLink`$1"
         }
 
