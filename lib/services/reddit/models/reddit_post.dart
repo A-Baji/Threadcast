@@ -23,21 +23,37 @@ class RedditPost {
     required this.comments,
   });
 
-  factory RedditPost.fromJson(Map<String, dynamic> postData, Map<String, dynamic> commentsData) {
-    // Implementation needed - parse Reddit API response
-    // For now, stub
+  factory RedditPost.fromJson(
+    Map<String, dynamic> postListing,
+    Map<String, dynamic> commentsListing,
+  ) {
+    final postData = Map<String, dynamic>.from(
+      ((postListing['data'] as Map<String, dynamic>)['children'] as List).first['data'] as Map,
+    );
+
+    final commentChildren = ((commentsListing['data'] as Map<String, dynamic>)['children'] as List?) ?? const [];
+    final comments = commentChildren
+        .where((child) => child is Map && child['kind'] == 't1')
+        .map(
+          (child) => RedditComment.fromJson(
+            Map<String, dynamic>.from((child as Map)['data'] as Map),
+            postData['author']?.toString() ?? '',
+          ),
+        )
+        .toList();
+
+    final createdUtcSeconds = (postData['created_utc'] as num?) ?? 0;
+
     return RedditPost(
-      id: postData['data']['children'][0]['data']['id'],
-      subreddit: postData['data']['children'][0]['data']['subreddit'],
-      title: postData['data']['children'][0]['data']['title'],
-      selftext: postData['data']['children'][0]['data']['selftext'],
-      authorName: postData['data']['children'][0]['data']['author'],
-      score: postData['data']['children'][0]['data']['score'],
-      numComments: postData['data']['children'][0]['data']['num_comments'],
-      createdUtc: DateTime.fromMillisecondsSinceEpoch(
-        (postData['data']['children'][0]['data']['created_utc'] * 1000).toInt(),
-      ),
-      comments: [], // Parse comments
+      id: postData['id']?.toString() ?? '',
+      subreddit: postData['subreddit']?.toString() ?? '',
+      title: postData['title']?.toString() ?? '',
+      selftext: postData['selftext']?.toString() ?? '',
+      authorName: postData['author']?.toString() ?? '',
+      score: (postData['score'] as num?)?.toInt() ?? 0,
+      numComments: (postData['num_comments'] as num?)?.toInt() ?? comments.length,
+      createdUtc: DateTime.fromMillisecondsSinceEpoch((createdUtcSeconds * 1000).toInt()),
+      comments: comments,
     );
   }
 }
