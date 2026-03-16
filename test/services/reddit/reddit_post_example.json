@@ -1,0 +1,96 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "abc123",
+            "subreddit": "dartlang",
+            "title": "My test post",
+            "selftext": "Post body",
+            "author": "post_op",
+            "score": 42,
+            "num_comments": 3,
+            "created_utc": 1710000000
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "c1",
+            "author": "commenter1",
+            "body": "First comment",
+            "score": 5,
+            "depth": 0,
+            "parent_id": "t3_abc123",
+            "replies": ""
+          }
+        },
+        {
+          "kind": "more",
+          "data": {
+            "count": 1,
+            "children": ["x1"]
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "c2",
+            "author": "post_op",
+            "body": "I am OP",
+            "score": 8,
+            "depth": 0,
+            "parent_id": "t3_abc123",
+            "replies": {
+              "kind": "Listing",
+              "data": {
+                "children": [
+                  {
+                    "kind": "t1",
+                    "data": {
+                      "id": "c2r1",
+                      "author": "another_user",
+                      "body": "reply level 1",
+                      "score": 1,
+                      "depth": 1,
+                      "parent_id": "t1_c2",
+                      "replies": {
+                        "kind": "Listing",
+                        "data": {
+                          "children": [
+                            {
+                              "kind": "t1",
+                              "data": {
+                                "id": "c2r1r1",
+                                "author": "post_op",
+                                "body": "reply level 2 by op",
+                                "score": 1,
+                                "depth": 2,
+                                "parent_id": "t1_c2r1",
+                                "replies": ""
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+]
