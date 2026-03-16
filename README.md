@@ -94,16 +94,6 @@ flutter run             # second run succeeds
 
 That's it. The setup script installs JDK 17, Android Studio, the Android SDK (API 35 + 36), a Pixel 8 Pro AVD, Flutter, Node.js, Claude Code, and the Kokoro TTS model files. It then scaffolds the project, runs `flutter pub get`, and generates the Drift database code.
 
-### Migrating an existing project (Isar → Drift)
-
-If you have an existing project that still uses Isar or the retired `ffmpeg_kit_flutter`:
-
-```powershell
-.\migrate-dependencies.ps1
-flutter analyze          # expect 0 errors
-flutter run              # run TWICE
-```
-
 ---
 
 ## Project structure
