@@ -1,16 +1,42 @@
-# threadcast
+# Threadcast
 
-A new Flutter project.
+Flutter app for recording, transcribing, and sharing threaded audio conversations.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Install Flutter and run `flutter doctor`.
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Run the app:
+   ```bash
+   flutter run
+   ```
 
-A few resources to get you started if this is your first Flutter project:
+## Troubleshooting
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### `flutter run` fails with Drift `isolateDebugLog` error
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+If you see an error like:
+
+- `No named parameter with the name 'isolateDebugLog'`
+- in `drift_flutter/.../native.dart`
+
+then your dependency graph contains incompatible Drift versions (for example, `drift_flutter` newer than `drift`).
+
+Fix:
+
+```bash
+flutter pub upgrade drift drift_dev drift_flutter
+flutter pub get
+flutter run
+```
+
+If the issue persists, delete `pubspec.lock` and regenerate:
+
+```bash
+rm pubspec.lock
+flutter pub get
+flutter run
+```
