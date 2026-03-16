@@ -2,16 +2,8 @@
 <#
 .SYNOPSIS
     Threadcast development environment setup for Windows.
-
 .DESCRIPTION
-    Installs and configures all tools required to develop Threadcast:
-    Flutter SDK, Android Studio, JDK 17, VS Code, Git, Node.js, Claude Code, Kokoro TTS models.
-    Uses winget where available, direct download as fallback.
-
-.NOTES
-    Run this script from an elevated PowerShell prompt (Run as Administrator).
-    Windows 10 21H1+ or Windows 11 required (winget dependency).
-    Estimated runtime: 20-40 minutes depending on internet speed.
+    Installs and configures all tools and generates a project scaffold compatible with Drift.
 #>
 
 [CmdletBinding()]
@@ -159,7 +151,6 @@ function Test-Preflight {
         Write-Pass "Disk space: $freeGB GB free on C:"
     }
 
-    # Try multiple endpoints - corporate firewalls often block specific hosts
     $connectivityTargets = @(
         @{ Uri = 'https://www.google.com';          Label = 'google.com' },
         @{ Uri = 'https://storage.googleapis.com';  Label = 'storage.googleapis.com' },
@@ -178,15 +169,12 @@ function Test-Preflight {
         }
     }
     if (-not $connected) {
-        # Final fallback: DNS resolution check (works even when HTTP is blocked by proxy)
         try {
             $null = [System.Net.Dns]::GetHostAddresses('google.com')
             Write-Pass 'Internet connectivity: OK (DNS resolution succeeded)'
             $connected = $true
         }
-        catch {
-            Write-Info 'DNS resolution also failed'
-        }
+        catch { Write-Info 'DNS resolution also failed' }
     }
     if (-not $connected) {
         Write-Fail 'No internet connectivity detected. Check your network and try again.'
@@ -229,8 +217,6 @@ function Install-Jdk {
 
     $javaHome = $env:JAVA_HOME
     if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
-        # java -version writes to stderr by design. Suppress ErrorActionPreference
-        # temporarily so PowerShell does not treat stderr as a terminating error.
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = 'SilentlyContinue'
         $javaVerOutput = (& "$javaHome\bin\java" -version 2>&1) | Select-Object -First 1
@@ -251,10 +237,7 @@ function Install-Jdk {
     $jdkPath = $null
     foreach ($pattern in $searchPatterns) {
         $found = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($found) {
-            $jdkPath = $found.FullName
-            break
-        }
+        if ($found) { $jdkPath = $found.FullName; break }
     }
 
     if ($jdkPath) {
@@ -310,8 +293,6 @@ function Install-AndroidStudio {
 
     Write-Step 'Installing Android SDK packages...'
 
-    # Use $() subexpressions to prevent PowerShell treating the dot as a
-    # property accessor on the variable (e.g. $var.0 would be a parse error).
     $pkgPlatform   = "platforms;android-$($AndroidApiLevel)"
     $pkgPlatformFB = "platforms;android-$($AndroidApiLevelFB)"
     $pkgBuildTools = "build-tools;$($AndroidApiLevel).0.0"
@@ -319,14 +300,9 @@ function Install-AndroidStudio {
     $pkgSysImgFB   = "system-images;android-$($AndroidApiLevelFB);google_apis_playstore;x86_64"
 
     $packages = @(
-        $pkgPlatform,
-        $pkgPlatformFB,
-        $pkgBuildTools,
-        $pkgSysImg,
-        $pkgSysImgFB,
-        'platform-tools',
-        'emulator',
-        'cmdline-tools;latest'
+        $pkgPlatform, $pkgPlatformFB, $pkgBuildTools,
+        $pkgSysImg, $pkgSysImgFB,
+        'platform-tools', 'emulator', 'cmdline-tools;latest'
     )
 
     foreach ($pkg in $packages) {
@@ -344,12 +320,8 @@ function Install-AndroidStudio {
             --device 'pixel_8_pro' `
             --force 2>&1 | Out-Null
 
-        if ($LASTEXITCODE -eq 0) {
-            Write-Pass "AVD 'Pixel_8_Pro_API_36' created"
-        }
-        else {
-            Write-Warn 'AVD creation failed. Create it manually in Android Studio AVD Manager.'
-        }
+        if ($LASTEXITCODE -eq 0) { Write-Pass "AVD 'Pixel_8_Pro_API_36' created" }
+        else { Write-Warn 'AVD creation failed. Create it manually in Android Studio AVD Manager.' }
     }
     else {
         Write-Warn 'avdmanager not found. Create the AVD manually in Android Studio.'
@@ -370,7 +342,6 @@ function Install-Flutter {
         $ErrorActionPreference = 'SilentlyContinue'
         $allVerLines = (& $flutterBat --version 2>&1)
         $ErrorActionPreference = $prevEAP
-        # The version line starts with "Flutter" - skip build noise like "Resolving dependencies..."
         $verLine = ($allVerLines | Where-Object { $_.ToString() -match '^Flutter ' } | Select-Object -First 1).ToString()
         if (-not $verLine) { $verLine = $allVerLines | Select-Object -Last 1 }
         Write-Pass "Flutter already installed: $verLine"
@@ -378,7 +349,6 @@ function Install-Flutter {
         return
     }
 
-    # Build the zip filename using a subexpression to avoid dot-property parse error
     $zipFileName = "flutter_windows_$($FlutterVersion)-stable.zip"
     $zipUrl  = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/$zipFileName"
     $zipPath = "$env:TEMP\flutter.zip"
@@ -393,14 +363,11 @@ function Install-Flutter {
     catch {
         Write-Fail "Flutter download failed: $_"
         Write-Info 'Download manually from https://flutter.dev/docs/get-started/install/windows'
-        Write-Info 'Extract to C:\flutter and add C:\flutter\bin to your PATH'
         return
     }
 
     Write-Step "Extracting Flutter to $FlutterInstallDir..."
-    if (Test-Path $FlutterInstallDir) {
-        Remove-Item $FlutterInstallDir -Recurse -Force
-    }
+    if (Test-Path $FlutterInstallDir) { Remove-Item $FlutterInstallDir -Recurse -Force }
     Expand-Archive -Path $zipPath -DestinationPath 'C:\' -Force
     Remove-Item $zipPath -Force
     Write-Pass "Flutter extracted to $FlutterInstallDir"
@@ -408,18 +375,12 @@ function Install-Flutter {
     Add-ToUserPath $FlutterBinDir
     $env:PATH = "$env:PATH;$FlutterBinDir"
 
-    # flutter.bat writes to stderr during first-run tool compilation.
-    # Suppress EAP so those messages don't terminate the script.
     $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'
-
     & $flutterBat config --no-analytics 2>&1 | Out-Null
-
     Write-Step 'Accepting Android SDK licenses...'
     "y`ny`ny`ny`ny`ny`ny" | & $flutterBat doctor --android-licenses 2>&1 | Out-Null
-
     $ErrorActionPreference = $prevEAP
-    Write-Pass 'Android licenses accepted'
 
     Write-Pass "Flutter $FlutterVersion installed"
 }
@@ -431,10 +392,7 @@ function Install-Flutter {
 function Install-VSCode {
     Write-Header 'Visual Studio Code'
 
-    if ($SkipVSCode) {
-        Write-Info 'Skipped via -SkipVSCode flag'
-        return
-    }
+    if ($SkipVSCode) { Write-Info 'Skipped via -SkipVSCode flag'; return }
 
     if (Test-Command 'code') {
         Write-Pass 'VS Code already installed'
@@ -473,10 +431,7 @@ function Install-VSCode {
 function Install-NodeAndClaudeCode {
     Write-Header 'Node.js + Claude Code'
 
-    if ($SkipClaudeCode) {
-        Write-Info 'Skipped via -SkipClaudeCode flag'
-        return
-    }
+    if ($SkipClaudeCode) { Write-Info 'Skipped via -SkipClaudeCode flag'; return }
 
     if (Test-Command 'node') {
         Write-Pass "Node.js already installed: $((node --version).ToString().Trim())"
@@ -494,16 +449,145 @@ function Install-NodeAndClaudeCode {
     elseif (Test-Command 'npm') {
         Write-Step 'Installing Claude Code globally...'
         & npm install -g '@anthropic-ai/claude-code' 2>&1 | Out-Null
-        if (Test-Command 'claude') {
-            Write-Pass 'Claude Code installed'
-        }
-        else {
-            Write-Warn 'Claude Code installed but not in PATH yet. Open a new terminal and run: claude --version'
-        }
+        if (Test-Command 'claude') { Write-Pass 'Claude Code installed' }
+        else { Write-Warn 'Claude Code installed but not in PATH yet. Open a new terminal and run: claude --version' }
     }
     else {
         Write-Warn 'npm not available in this session. After restarting terminal run: npm install -g @anthropic-ai/claude-code'
     }
+}
+
+# ---------------------------------------------------------------------------
+# Kokoro TTS model setup
+# ---------------------------------------------------------------------------
+
+function Install-KokoroModels {
+    Write-Header 'Kokoro TTS model setup'
+
+    $repoRoot  = $PSScriptRoot
+    $sourceDir = $null
+
+    $candidate = Get-ChildItem -Path $repoRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match 'kokoro' } | Select-Object -First 1
+    if ($candidate) { $sourceDir = $candidate.FullName }
+
+    if (-not $sourceDir) {
+        $looseOnnx = Get-ChildItem -Path $repoRoot -Filter '*.onnx' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match 'kokoro' } | Select-Object -First 1
+        if ($looseOnnx) { $sourceDir = $repoRoot }
+    }
+
+    if (-not $sourceDir) {
+        $archiveName = 'kokoro-en-v0_19.tar.bz2'
+        $downloadUrl = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$archiveName"
+        $archivePath = Join-Path $repoRoot $archiveName
+
+        Write-Step "Kokoro models not found locally. Downloading (~335 MB)..."
+        try {
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath -UseBasicParsing
+            $ProgressPreference = 'Continue'
+            Write-Pass "Download complete: $archiveName"
+        }
+        catch {
+            Write-Fail "Download failed: $_"
+            Write-Info 'Download manually from: https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2'
+            return
+        }
+
+        $sevenZipExe = $null
+        foreach ($c in @('C:\Program Files\7-Zip\7z.exe','C:\Program Files (x86)\7-Zip\7z.exe')) {
+            if (Test-Path $c) { $sevenZipExe = $c; break }
+        }
+        if (-not $sevenZipExe) {
+            $prevEAP2 = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
+            & winget install --id 7zip.7zip --exact --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+            $ErrorActionPreference = $prevEAP2
+            foreach ($c in @('C:\Program Files\7-Zip\7z.exe','C:\Program Files (x86)\7-Zip\7z.exe')) {
+                if (Test-Path $c) { $sevenZipExe = $c; break }
+            }
+        }
+        if (-not $sevenZipExe) {
+            Write-Fail '7-Zip not found after install attempt.'
+            Write-Info "Manual fix: install 7-Zip from https://7-zip.org then run:"
+            Write-Info "  `"C:\Program Files\7-Zip\7z.exe`" x `"$archivePath`" -o`"$repoRoot`" -y"
+            Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
+            return
+        }
+        Write-Pass "7-Zip found: $sevenZipExe"
+
+        Write-Step "Extracting $archiveName..."
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
+        & $sevenZipExe x $archivePath "-o$repoRoot" -y 2>&1 | Out-Null
+        $tarPath = $archivePath -replace '\.bz2$', ''
+        if (Test-Path $tarPath) {
+            & $sevenZipExe x $tarPath "-o$repoRoot" -y 2>&1 | Out-Null
+            Remove-Item $tarPath -Force -ErrorAction SilentlyContinue
+        }
+        $tarExit = $LASTEXITCODE
+        $ErrorActionPreference = $prevEAP
+        Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
+
+        if ($tarExit -ne 0) { Write-Fail "Extraction failed (exit: $tarExit)."; return }
+        Write-Pass 'Extraction complete'
+
+        $candidate = Get-ChildItem -Path $repoRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match 'kokoro' } | Select-Object -First 1
+        if ($candidate) { $sourceDir = $candidate.FullName }
+        else { Write-Fail 'Could not locate extracted model directory.'; return }
+    }
+
+    Write-Pass "Found Kokoro source at: $sourceDir"
+
+    $flutterProjectRoot = $null
+    if (Test-Path (Join-Path $repoRoot 'pubspec.yaml')) {
+        $flutterProjectRoot = $repoRoot
+    }
+    else {
+        $nested = Get-ChildItem -Path $repoRoot -Filter 'pubspec.yaml' -Recurse -Depth 2 -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($nested) { $flutterProjectRoot = $nested.DirectoryName }
+    }
+
+    if (-not $flutterProjectRoot) {
+        Write-Warn 'Flutter project (pubspec.yaml) not found. Re-run after project is created.'
+        return
+    }
+
+    $targetDir = Join-Path (Join-Path $flutterProjectRoot 'assets') 'tts_models'
+    if (-not (Test-Path $targetDir)) { New-Item -ItemType Directory -Path $targetDir -Force | Out-Null }
+
+    Write-Step 'Copying model files...'
+
+    $onnxSrc = Get-ChildItem -Path $sourceDir -Filter '*.onnx' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($onnxSrc) {
+        Copy-Item $onnxSrc.FullName -Destination (Join-Path $targetDir 'kokoro-v0_19.onnx') -Force
+        Write-Pass "  kokoro-v0_19.onnx ($([math]::Round($onnxSrc.Length / 1MB, 1)) MB)"
+    }
+    else { Write-Warn '  No .onnx file found in source directory' }
+
+    foreach ($file in @('voices.bin','tokens.txt')) {
+        $src = Join-Path $sourceDir $file
+        if (Test-Path $src) {
+            Copy-Item $src -Destination (Join-Path $targetDir $file) -Force
+            Write-Pass "  $file"
+        }
+        else { Write-Warn "  $file not found" }
+    }
+
+    $espeakSrc = Join-Path $sourceDir 'espeak-ng-data'
+    if (Test-Path $espeakSrc) {
+        $espeakDest = Join-Path $targetDir 'espeak-ng-data'
+        if (Test-Path $espeakDest) { Remove-Item $espeakDest -Recurse -Force }
+        Copy-Item $espeakSrc -Destination $espeakDest -Recurse -Force
+        $fileCount = (Get-ChildItem $espeakDest -Recurse -File).Count
+        Write-Pass "  espeak-ng-data/ ($fileCount files)"
+    }
+    else { Write-Warn '  espeak-ng-data/ directory not found' }
+
+    $totalMB = [math]::Round(
+        ((Get-ChildItem $targetDir -Recurse -File | Measure-Object -Property Length -Sum).Sum) / 1MB, 1)
+    Write-Pass "Kokoro TTS models installed ($totalMB MB total in assets/tts_models/)"
 }
 
 # ---------------------------------------------------------------------------
@@ -513,44 +597,40 @@ function Install-NodeAndClaudeCode {
 function New-FlutterProject {
     Write-Header 'Flutter project scaffold'
 
-    $repoRoot      = $PSScriptRoot
-    $projectDir    = $repoRoot          # Flutter project lives in the repo root
-    $flutterBat    = "$FlutterBinDir\flutter.bat"
+    $repoRoot   = $PSScriptRoot
+    $projectDir = $repoRoot
+    $flutterBat = "$FlutterBinDir\flutter.bat"
 
     if (-not (Test-Path $flutterBat)) {
-        Write-Warn 'Flutter not found — cannot scaffold project. Install Flutter first.'
+        Write-Warn 'Flutter not found -- cannot scaffold project. Install Flutter first.'
         return
     }
 
     # -----------------------------------------------------------------------
-    # 1. Create Flutter project if it does not exist
+    # 1. Create Flutter project if it doesn't exist
     # -----------------------------------------------------------------------
     if (Test-Path (Join-Path $projectDir 'pubspec.yaml')) {
         Write-Pass "Flutter project already exists at: $projectDir"
     }
     else {
-        Write-Step "Creating Flutter project in repo root: $projectDir"
-        $prevEAP = $ErrorActionPreference
-        $ErrorActionPreference = 'SilentlyContinue'
+        Write-Step "Creating Flutter project in: $projectDir"
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
         Push-Location $projectDir
-        & $flutterBat create . `
-            --org com.threadcast `
-            --platforms android,ios `
-            --project-name threadcast 2>&1 | Out-Null
+        & $flutterBat create . --org com.threadcast --platforms android,ios --project-name threadcast 2>&1 | Out-Null
         Pop-Location
         $ErrorActionPreference = $prevEAP
 
-        if (Test-Path (Join-Path $projectDir 'pubspec.yaml')) {
-            Write-Pass 'Flutter project created'
-        }
-        else {
-            Write-Fail 'flutter create failed. Check Flutter installation and try again.'
-            return
-        }
+        if (Test-Path (Join-Path $projectDir 'pubspec.yaml')) { Write-Pass 'Flutter project created' }
+        else { Write-Fail 'flutter create failed.'; return }
     }
 
     # -----------------------------------------------------------------------
     # 2. Write pubspec.yaml
+    #    Dependencies chosen for active maintenance and long-term viability:
+    #      drift + drift_flutter  : actively maintained SQLite ORM (replaces unmaintained isar)
+    #      ffmpeg_kit_flutter_new : community fork of retired ffmpeg_kit_flutter (same API)
+    #    NOTE: ffmpeg_kit_flutter_new downloads its Android AAR at Gradle build time.
+    #          The FIRST build will fail with a download error. Run flutter run TWICE.
     # -----------------------------------------------------------------------
     Write-Step 'Writing pubspec.yaml...'
     $pubspecPath = Join-Path $projectDir 'pubspec.yaml'
@@ -583,13 +663,19 @@ dependencies:
   # TTS
   sherpa_onnx: ^1.12.0
 
-  # Audio
+  # Audio playback
   just_audio: ^0.10.5
-  ffmpeg_kit_flutter: ^6.0.3
 
-  # Database
-  isar: ^3.1.0
-  isar_flutter_libs: ^3.1.0
+  # Audio export -- ffmpeg_kit_flutter was retired Jan 2025.
+  # ffmpeg_kit_flutter_new is the original author's recommended community fork.
+  # IMPORTANT: The first Gradle build will fail (AAR download incomplete).
+  #            Run `flutter run` a second time and it will succeed.
+  ffmpeg_kit_flutter_new: ^2.0.0
+
+  # Database -- drift replaces unmaintained isar (abandoned 2023).
+  # drift is actively maintained by simolus3 and widely used.
+  drift: ^2.20.0
+  drift_flutter: ^0.2.0     # handles SQLite native libs on Android + iOS
   path_provider: ^2.1.0
 
   # Sharing & export
@@ -603,9 +689,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   riverpod_generator: ^2.4.0
-  build_runner: ^2.4.0
-  isar_generator: ^3.1.0
+  build_runner: ^2.4.0      # used by both riverpod_generator and drift_dev
+  drift_dev: ^2.20.0        # drift code generator (replaces isar_generator)
   flutter_lints: ^4.0.0
+  # analyzer is intentionally not pinned -- drift_dev and riverpod_generator
+  # both require analyzer ^6.x or ^7.x and pub resolves it automatically.
 
 flutter:
   uses-material-design: true
@@ -639,203 +727,154 @@ flutter:
     )
     foreach ($d in $dirs) {
         $fullPath = Join-Path $projectDir $d
-        if (-not (Test-Path $fullPath)) {
-            New-Item -ItemType Directory -Path $fullPath -Force | Out-Null
-        }
+        if (-not (Test-Path $fullPath)) { New-Item -ItemType Directory -Path $fullPath -Force | Out-Null }
     }
     Write-Pass 'Directory structure created'
 
     # -----------------------------------------------------------------------
-    # 4. Write stub Dart files
+    # 4. Write Episode model (Drift schema)
     # -----------------------------------------------------------------------
-    Write-Step 'Writing stub Dart files...'
+    Write-Step 'Writing Episode model (Drift schema)...'
+    $episodeDart = @'
+import 'dart:convert';
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 
+part 'episode.g.dart';
+
+enum EpisodeStatus { pending, generating, complete, failed }
+
+// Drift table definition -- generates type-safe query methods via build_runner.
+// Run: dart run build_runner build --delete-conflicting-outputs
+class Episodes extends Table {
+  IntColumn    get id                 => integer().autoIncrement()();
+  TextColumn   get episodeId          => text()();
+  TextColumn   get title              => text()();
+  TextColumn   get subreddit          => text()();
+  // List<String> stored as JSON -- Drift does not support List columns natively.
+  // Use AppDatabase.decodeUrls() / encodeUrls() helpers when reading/writing.
+  TextColumn   get sourceUrlsJson     => text()();
+  TextColumn   get tone               => text()();
+  DateTimeColumn get createdAt        => dateTime()();
+  IntColumn    get durationSeconds    => integer()();
+  TextColumn   get audioWavPath       => text().nullable()();
+  TextColumn   get audioMp3Path       => text().nullable()();
+  TextColumn   get transcriptJsonPath => text().nullable()();
+  // EpisodeStatus stored as int (0=pending, 1=generating, 2=complete, 3=failed)
+  IntColumn    get status             => integer().withDefault(const Constant(0))();
+  TextColumn   get errorMessage       => text().nullable()();
+}
+
+@DriftDatabase(tables: [Episodes])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  // Helper: encode List<String> -> JSON string for storage
+  static String encodeUrls(List<String> urls) => jsonEncode(urls);
+
+  // Helper: decode JSON string -> List<String> for reading
+  static List<String> decodeUrls(String json) =>
+      (jsonDecode(json) as List).cast<String>();
+
+  // Helper: int -> EpisodeStatus enum
+  static EpisodeStatus decodeStatus(int i) => EpisodeStatus.values[i];
+
+  // Helper: EpisodeStatus enum -> int
+  static int encodeStatus(EpisodeStatus s) => s.index;
+}
+
+QueryExecutor _openConnection() {
+  return driftDatabase(name: 'threadcast');
+}
+'@
+    Set-Content -Path (Join-Path $projectDir 'lib\models\episode.dart') -Value $episodeDart -NoNewline
+    Write-Pass 'lib/models/episode.dart written (Drift schema)'
+
+    # -----------------------------------------------------------------------
+    # 5. Write stub Dart files
+    # -----------------------------------------------------------------------
+function New-ProjectScaffold {
+    param([string]$projectRoot)
+    
     $stubs = @{}
+    
+    # Core Database Provider
+    $stubs['lib\core\providers.dart'] = @'
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../models/episode.dart';
 
-    $stubs['lib\core\constants.dart'] = @'
-class AppConstants {
-  // Set to empty string during development (uses public .json endpoint)
-  // Set to your approved Reddit client ID for production OAuth flow
-  static const redditClientId = '';
+part 'providers.g.dart';
 
-  static const redditRedirectUri = 'threadcast://oauth/callback';
-
-  // TODO: replace YOUR_REDDIT_USERNAME before going to production
-  static const redditUserAgent =
-      'ios:com.threadcast.app:v1.0.0 (by /u/YOUR_REDDIT_USERNAME)';
-
-  static const redditScopes = 'read identity';
-}
+@riverpod
+AppDatabase database(DatabaseRef ref) => AppDatabase();
 '@
 
-    $stubs['lib\core\errors.dart'] = @'
-/// Typed error codes used throughout the pipeline.
-/// See CLAUDE.md Error Handling Strategy for user-facing messages.
-class ThreadcastError {
-  static const modelUnavailable   = 'MODEL_UNAVAILABLE';
-  static const redditAuthExpired  = 'REDDIT_AUTH_EXPIRED';
-  static const redditRateLimited  = 'REDDIT_RATE_LIMITED';
-  static const contextTooLong     = 'CONTEXT_TOO_LONG';
-  static const generationFailed   = 'GENERATION_FAILED';
-  static const ttsFailed          = 'TTS_FAILED';
-  static const invalidUrl         = 'INVALID_URL';
-  static const backgroundBlocked  = 'BACKGROUND_BLOCKED';
-  static const cancelled          = 'CANCELLED';
-}
-'@
+    # Feature Provider using Drift Companions
+    $stubs['lib\features\create\create_provider.dart'] = @'
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:drift/drift.dart'; // REQUIRED for Value() and Companions
+import '../../core/providers.dart';
+import '../../models/episode.dart';
 
-    $stubs['lib\core\extensions.dart'] = @'
-import 'dart:io';
+part 'create_provider.g.dart';
 
-extension FileExtension on File {
-  Future<void> deleteIfExists() async {
-    if (await exists()) await delete();
-  }
-}
-'@
-
-    $stubs['lib\main.dart'] = @'
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'app.dart';
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: ThreadcastApp()));
-}
-'@
-
-    $stubs['lib\app.dart'] = @'
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'features/create/create_screen.dart';
-import 'features/library/library_screen.dart';
-import 'features/onboarding/onboarding_screen.dart';
-import 'features/player/player_screen.dart';
-
-class ThreadcastApp extends StatelessWidget {
-  const ThreadcastApp({super.key});
-
+@riverpod
+class CreateEpisode extends _$CreateEpisode {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Threadcast',
-      routerConfig: _router,
+  void build() {}
+
+  Future<void> create(String title, String subreddit, List<String> urls) async {
+    final db = ref.read(databaseProvider);
+    
+    final companion = EpisodesCompanion.insert(
+      episodeId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      subreddit: subreddit,
+      sourceUrlsJson: AppDatabase.encodeUrls(urls),
+      // Use Value() for fields that have defaults or are nullable
+      status: const Value('queued'), 
+      createdAt: DateTime.now(),
+      tone: 'neutral',
+      durationSeconds: 0,
     );
+
+    await db.upsertEpisode(companion);
   }
 }
-
-final _router = GoRouter(
-  routes: [
-    GoRoute(path: '/',            builder: (_, __) => const CreateScreen()),
-    GoRoute(path: '/onboarding',  builder: (_, __) => const OnboardingScreen()),
-    GoRoute(path: '/library',     builder: (_, __) => const LibraryScreen()),
-    GoRoute(
-      path: '/player/:episodeId',
-      builder: (_, state) => PlayerScreen(
-        episodeId: state.pathParameters['episodeId']!,
-      ),
-    ),
-  ],
-  // TODO: add redirect guard once auth service is wired up
-);
 '@
 
-    # Feature screen stubs
-    $screens = @{
-        'lib\features\onboarding\onboarding_screen.dart' = 'OnboardingScreen'
-        'lib\features\onboarding\onboarding_provider.dart' = '// TODO: implement Reddit OAuth provider'
-        'lib\features\create\create_screen.dart' = 'CreateScreen'
-        'lib\features\create\create_provider.dart' = '// TODO: implement generation pipeline provider'
-        'lib\features\create\widgets\url_input_field.dart' = 'UrlInputField'
-        'lib\features\create\widgets\url_chip_list.dart' = 'UrlChipList'
-        'lib\features\create\widgets\generation_progress.dart' = 'GenerationProgress'
-        'lib\features\player\player_screen.dart' = 'PlayerScreen'
-        'lib\features\player\player_provider.dart' = '// TODO: implement audio player provider'
-        'lib\features\player\widgets\playback_controls.dart' = 'PlaybackControls'
-        'lib\features\player\widgets\transcript_view.dart' = 'TranscriptView'
-        'lib\features\library\library_screen.dart' = 'LibraryScreen'
-        'lib\features\library\library_provider.dart' = '// TODO: implement library provider'
-        'lib\features\library\widgets\episode_tile.dart' = 'EpisodeTile'
-        'lib\shared\widgets\threadcast_scaffold.dart' = 'ThreadcastScaffold'
-        'lib\shared\widgets\unsupported_device_screen.dart' = 'UnsupportedDeviceScreen'
-        'lib\shared\theme\app_theme.dart' = '// TODO: implement app theme'
-        'lib\services\reddit\reddit_auth_service.dart' = '// TODO: implement Reddit OAuth 2.0 + PKCE'
-        'lib\services\reddit\reddit_scraper.dart' = '// TODO: implement dual-mode scraper (see CLAUDE.md)'
-        'lib\services\reddit\models\reddit_post.dart' = '// TODO: implement RedditPost model'
-        'lib\services\reddit\models\reddit_comment.dart' = '// TODO: implement RedditComment model'
-        'lib\services\llm\llm_service.dart' = '// TODO: implement LlmService abstract interface'
-        'lib\services\llm\os_llm_service.dart' = '// TODO: implement OsLlmService (platform channel)'
-        'lib\services\llm\llm_prompt_builder.dart' = '// TODO: implement two-phase prompt builder (see CLAUDE.md)'
-        'lib\services\llm\models\transcript.dart' = '// TODO: implement Transcript + TranscriptSegment models'
-        'lib\services\llm\models\speaker.dart' = '// TODO: implement Speaker model'
-        'lib\services\tts\tts_service.dart' = '// TODO: implement TtsService (Sherpa-ONNX wrapper)'
-        'lib\services\tts\voice_assignment.dart' = '// TODO: implement VoiceAssignment (see CLAUDE.md)'
-        'lib\services\tts\audio_stitcher.dart' = '// TODO: implement AudioStitcher with FFmpeg'
-        'lib\models\episode.dart' = '// TODO: implement Episode Isar schema (see CLAUDE.md)'
+    foreach ($path in $stubs.Keys) {
+        $fullPath = Join-Path $projectRoot $path
+        $dir = Split-Path $fullPath -Parent
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force }
+        Set-Content -Path $fullPath -Value $stubs[$path] -NoNewline
     }
-
-    foreach ($file in $screens.Keys) {
-        $fullPath = Join-Path $projectDir $file
-        if (-not (Test-Path $fullPath)) {
-            $name = $screens[$file]
-            if ($name -match '^//') {
-                Set-Content -Path $fullPath -Value $name -NoNewline
-            }
-            elseif ($name -match 'Provider$' -or $name -match 'provider$') {
-                Set-Content -Path $fullPath -Value "// TODO: implement $name" -NoNewline
-            }
-            else {
-                $stub = @"
-import 'package:flutter/material.dart';
-
-class $name extends StatelessWidget {
-  const $name({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('$name — TODO')),
-    );
-  }
 }
-"@
-                Set-Content -Path $fullPath -Value $stub -NoNewline
-            }
-        }
-    }
-
-    foreach ($file in $stubs.Keys) {
-        $fullPath = Join-Path $projectDir $file
-        if (-not (Test-Path $fullPath)) {
-            Set-Content -Path $fullPath -Value $stubs[$file] -NoNewline
-        }
-    }
-    Write-Pass 'Stub Dart files written'
 
     # -----------------------------------------------------------------------
-    # 5. Native stub files
+    # 6. Native LLM stubs
     # -----------------------------------------------------------------------
     Write-Step 'Writing native LLM stub files...'
 
-    # Android Kotlin stubs
     $kotlinDir = Join-Path $projectDir 'android\app\src\main\kotlin\com\threadcast\app\llm'
 
-    $geminiNanoStub = @'
+    Set-Content -Path (Join-Path $kotlinDir 'GeminiNanoService.kt') -Value @'
 package com.threadcast.app.llm
 
 // TODO: Implement Gemini Nano via ML Kit GenAI Prompt API
 // Dependency: implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")
-// See CLAUDE.md - Android: Gemini Nano via ML Kit GenAI Prompt API
+// See CLAUDE.md -- Android: Gemini Nano via ML Kit GenAI Prompt API
 class GeminiNanoService {
     suspend fun isAvailable(): Boolean = false  // TODO
     suspend fun generateTranscript(prompt: String): String = ""  // TODO
     fun release() {}
 }
-'@
-    Set-Content -Path (Join-Path $kotlinDir 'GeminiNanoService.kt') -Value $geminiNanoStub -NoNewline
+'@ -NoNewline
 
-    $llmPluginKtStub = @'
+    Set-Content -Path (Join-Path $kotlinDir 'LlmPlugin.kt') -Value @'
 package com.threadcast.app.llm
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -843,7 +882,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 // TODO: Implement full LLM platform channel
-// See CLAUDE.md - Android: Gemini Nano via ML Kit GenAI Prompt API
+// See CLAUDE.md -- Android: Gemini Nano via ML Kit GenAI Prompt API
 class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private lateinit var channel: MethodChannel
@@ -856,7 +895,7 @@ class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "isAvailable"         -> result.success(false)  // TODO: call service.isAvailable()
+            "isAvailable"         -> result.success(false)
             "generateTranscript"  -> result.error("NOT_IMPLEMENTED", "TODO", null)
             "cancelGeneration"    -> result.success(null)
             else                  -> result.notImplemented()
@@ -868,34 +907,32 @@ class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         service.release()
     }
 }
-'@
-    Set-Content -Path (Join-Path $kotlinDir 'LlmPlugin.kt') -Value $llmPluginKtStub -NoNewline
+'@ -NoNewline
 
-    # iOS Swift stubs
     $iosLlmDir = Join-Path $projectDir 'ios\Runner\llm'
+    if (-not (Test-Path $iosLlmDir)) { New-Item -ItemType Directory -Path $iosLlmDir -Force | Out-Null }
 
-    $foundationModelStub = @'
+    Set-Content -Path (Join-Path $iosLlmDir 'FoundationModelService.swift') -Value @'
 import Foundation
 
 // TODO: Implement Foundation Models integration
 // Requires iOS 26+, and the Foundation Models entitlement must be enabled in Xcode:
 //   Signing & Capabilities -> + Capability -> Foundation Models
-// See CLAUDE.md - iOS: Foundation Models Framework
+// See CLAUDE.md -- iOS: Foundation Models Framework
 
 @available(iOS 26.0, *)
 class FoundationModelService {
     func isAvailable() -> Bool { return false }  // TODO
     func generateTranscript(prompt: String) async throws -> String { return "" }  // TODO
 }
-'@
-    Set-Content -Path (Join-Path $iosLlmDir 'FoundationModelService.swift') -Value $foundationModelStub -NoNewline
+'@ -NoNewline
 
-    $llmPluginSwiftStub = @'
+    Set-Content -Path (Join-Path $iosLlmDir 'LlmPlugin.swift') -Value @'
 import Flutter
 import UIKit
 
 // TODO: Implement full LLM platform channel
-// See CLAUDE.md - iOS: Foundation Models Framework
+// See CLAUDE.md -- iOS: Foundation Models Framework
 class LlmPlugin: NSObject, FlutterPlugin {
 
     static func register(with registrar: FlutterPluginRegistrar) {
@@ -918,26 +955,24 @@ class LlmPlugin: NSObject, FlutterPlugin {
         }
     }
 }
-'@
-    Set-Content -Path (Join-Path $iosLlmDir 'LlmPlugin.swift') -Value $llmPluginSwiftStub -NoNewline
+'@ -NoNewline
+
     Write-Pass 'Native LLM stub files written'
 
     # -----------------------------------------------------------------------
-    # 6. Android manifest additions
+    # 7. Patch AndroidManifest.xml
     # -----------------------------------------------------------------------
     Write-Step 'Patching AndroidManifest.xml...'
     $manifestPath = Join-Path $projectDir 'android\app\src\main\AndroidManifest.xml'
     if (Test-Path $manifestPath) {
         $manifest = Get-Content $manifestPath -Raw
 
-        $permissionsToAdd = @(
-            '<uses-permission android:name="android.permission.INTERNET"/>',
-            '<uses-permission android:name="android.permission.WAKE_LOCK"/>'
-        )
-        foreach ($perm in $permissionsToAdd) {
-            $permName = ($perm -replace '.*android:name="([^"]+)".*', '$1')
-            if ($manifest -notmatch [regex]::Escape($permName)) {
-                $manifest = $manifest -replace '(<manifest[^>]*>)', "`$1`n    $perm"
+        foreach ($perm in @(
+            'android.permission.INTERNET',
+            'android.permission.WAKE_LOCK'
+        )) {
+            if ($manifest -notmatch [regex]::Escape($perm)) {
+                $manifest = $manifest -replace '(<manifest[^>]*>)', "`$1`n    <uses-permission android:name=`"$perm`"/>"
             }
         }
 
@@ -950,7 +985,8 @@ class LlmPlugin: NSObject, FlutterPlugin {
                 <data android:scheme="threadcast" android:host="oauth"/>
             </intent-filter>
 '@
-        if ($manifest -notmatch 'threadcast://oauth') {
+        # Only add if not already present
+        if ($manifest -notmatch 'scheme="threadcast"') {
             $manifest = $manifest -replace '(</activity>)', "$deepLink`$1"
         }
 
@@ -958,11 +994,39 @@ class LlmPlugin: NSObject, FlutterPlugin {
         Write-Pass 'AndroidManifest.xml patched'
     }
     else {
-        Write-Warn 'AndroidManifest.xml not found — patch it manually per CLAUDE.md'
+        Write-Warn 'AndroidManifest.xml not found -- patch it manually per CLAUDE.md'
     }
 
     # -----------------------------------------------------------------------
-    # 7. iOS Info.plist additions
+    # 8. Patch android/app/build.gradle.kts -- set minSdk to 36
+    # -----------------------------------------------------------------------
+    Write-Step 'Patching android/app/build.gradle.kts (minSdk = 36)...'
+    $buildGradlePath = Join-Path $projectDir 'android\app\build.gradle.kts'
+    if (Test-Path $buildGradlePath) {
+        $buildGradle = Get-Content $buildGradlePath -Raw
+        if ($buildGradle -match 'minSdk\s*=\s*flutter\.minSdkVersion') {
+            $buildGradle = $buildGradle -replace 'minSdk\s*=\s*flutter\.minSdkVersion', 'minSdk = 36'
+            Set-Content -Path $buildGradlePath -Value $buildGradle -NoNewline
+            Write-Pass 'minSdk set to 36 (Android 16 -- required for AICore / Gemini Nano)'
+        }
+        else {
+            Write-Info 'minSdk already patched or uses a different pattern -- check manually'
+        }
+
+        # Also fix applicationId if it still has the wrong bundle ID
+        if ($buildGradle -match 'applicationId\s*=\s*"com\.threadcast\.threadcast"') {
+            $buildGradle = Get-Content $buildGradlePath -Raw
+            $buildGradle = $buildGradle -replace 'applicationId\s*=\s*"com\.threadcast\.threadcast"', 'applicationId = "com.threadcast.app"'
+            Set-Content -Path $buildGradlePath -Value $buildGradle -NoNewline
+            Write-Pass 'applicationId corrected to com.threadcast.app'
+        }
+    }
+    else {
+        Write-Warn 'android/app/build.gradle.kts not found -- set minSdk = 36 manually'
+    }
+
+    # -----------------------------------------------------------------------
+    # 9. Patch iOS Info.plist
     # -----------------------------------------------------------------------
     Write-Step 'Patching ios/Runner/Info.plist...'
     $plistPath = Join-Path $projectDir 'ios\Runner\Info.plist'
@@ -1010,35 +1074,56 @@ class LlmPlugin: NSObject, FlutterPlugin {
         Write-Pass 'Info.plist patched'
     }
     else {
-        Write-Warn 'Info.plist not found — patch it manually per CLAUDE.md'
+        Write-Warn 'Info.plist not found -- patch it manually per CLAUDE.md'
     }
 
     # -----------------------------------------------------------------------
-    # 8. Copy CLAUDE.md into project root if not already there
+    # 10. Add .vscode/settings.json for format on save
     # -----------------------------------------------------------------------
-    # CLAUDE.md is already in the repo root which IS the project root — nothing to copy
-    $claudePath = Join-Path $projectDir 'CLAUDE.md'
-    if (Test-Path $claudePath) {
-        Write-Pass 'CLAUDE.md present in project root'
+    Write-Step 'Writing .vscode/settings.json...'
+    $vscodeDir = Join-Path $projectDir '.vscode'
+    if (-not (Test-Path $vscodeDir)) { New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null }
+    $vsSettings = @'
+{
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
+  },
+  "[kotlin]": {
+    "editor.formatOnSave": true
+  }
+}
+'@
+    Set-Content -Path (Join-Path $vscodeDir 'settings.json') -Value $vsSettings -NoNewline
+    Write-Pass '.vscode/settings.json written'
+
+    # -----------------------------------------------------------------------
+    # 11. Add pre-commit hook
+    # -----------------------------------------------------------------------
+    Write-Step 'Writing git pre-commit hook...'
+    $hooksDir = Join-Path $projectDir '.git\hooks'
+    if (-not (Test-Path $hooksDir)) { New-Item -ItemType Directory -Path $hooksDir -Force | Out-Null }
+    $hookScript = "#!/bin/sh`ndart format --set-exit-if-changed .`nif [ `$? -ne 0 ]; then`n  echo `"Dart formatting issues found. Run 'dart format .' to fix.`"`n  exit 1`nfi`n"
+    [System.IO.File]::WriteAllText("$projectDir\.git\hooks\pre-commit", $hookScript)
+    $chmodExe = 'C:\Program Files\Git\usr\bin\chmod.exe'
+    if (Test-Path $chmodExe) {
+        & $chmodExe +x "$projectDir\.git\hooks\pre-commit"
+        Write-Pass 'Pre-commit hook installed (dart format on commit)'
     }
     else {
-        Write-Warn 'CLAUDE.md not found — make sure it is in the repo root'
+        Write-Warn 'chmod.exe not found -- hook created but may not be executable. Run: git update-index --chmod=+x .git/hooks/pre-commit'
     }
 
     # -----------------------------------------------------------------------
-    # 9. flutter pub get
+    # 12. flutter pub get
     # -----------------------------------------------------------------------
     Write-Step 'Running flutter pub get...'
-    $prevEAP = $ErrorActionPreference
-    $ErrorActionPreference = 'SilentlyContinue'
+    $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
     Push-Location $projectDir
-
-    # Run flutter pub get and show output live so errors are visible
     Write-Host ''
     & $flutterBat pub get
     $pubGetExit = $LASTEXITCODE
     Write-Host ''
-
     Pop-Location
     $ErrorActionPreference = $prevEAP
 
@@ -1046,310 +1131,53 @@ class LlmPlugin: NSObject, FlutterPlugin {
         Write-Pass 'flutter pub get succeeded'
     }
     else {
-        Write-Warn "flutter pub get failed (exit code: $pubGetExit) — see output above"
-        Write-Info 'Try running manually: cd D:\github\Threadcast && flutter pub get'
+        Write-Warn "flutter pub get failed (exit code: $pubGetExit) -- see output above"
+        Write-Info 'Try running manually: flutter pub get'
     }
 
     # -----------------------------------------------------------------------
-    # 10. Initial git commit
+    # 13. Generate Drift code (episode.g.dart)
+    # -----------------------------------------------------------------------
+    Write-Step 'Running drift code generation (dart run build_runner build)...'
+    $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
+    Push-Location $projectDir
+    Write-Host ''
+    & $flutterBat packages pub run build_runner build --delete-conflicting-outputs
+    $buildRunnerExit = $LASTEXITCODE
+    Write-Host ''
+    Pop-Location
+    $ErrorActionPreference = $prevEAP
+
+    if ($buildRunnerExit -eq 0) {
+        Write-Pass 'Drift code generation succeeded (episode.g.dart created)'
+    }
+    else {
+        Write-Warn "build_runner failed (exit code: $buildRunnerExit)"
+        Write-Info 'Try manually: dart run build_runner build --delete-conflicting-outputs'
+    }
+
+    # -----------------------------------------------------------------------
+    # 14. Initial git commit
     # -----------------------------------------------------------------------
     if (Test-Command 'git') {
         Write-Step 'Creating initial git commit...'
         Push-Location $projectDir
-
-        # Suppress stderr — git prints LF/CRLF warnings and other info to stderr
-        # which PowerShell treats as errors. Check exit codes instead.
-        $prevEAP = $ErrorActionPreference
-        $ErrorActionPreference = 'SilentlyContinue'
-
-        # Configure git to stop warning about line endings in this repo
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
         & git config core.autocrlf true 2>&1 | Out-Null
-
         $gitStatus = & git status --porcelain 2>&1
         if ($gitStatus) {
             & git add -A 2>&1 | Out-Null
             & git commit -m 'init: Flutter project scaffold + CLAUDE.md + TTS models' 2>&1 | Out-Null
-            $commitExit = $LASTEXITCODE
-            if ($commitExit -eq 0) {
-                Write-Pass 'Initial git commit created'
-            }
-            else {
-                Write-Warn 'git commit failed — commit manually with: git add -A && git commit -m "init"'
-            }
+            if ($LASTEXITCODE -eq 0) { Write-Pass 'Initial git commit created' }
+            else { Write-Warn 'git commit failed -- commit manually: git add -A -and- git commit -m "init"' }
         }
-        else {
-            Write-Pass 'Nothing to commit — working tree clean'
-        }
-
+        else { Write-Pass 'Nothing to commit -- working tree clean' }
         $ErrorActionPreference = $prevEAP
         Pop-Location
     }
 
     Write-Pass "Project scaffold complete: $projectDir"
     Write-Info "Next: cd $projectDir  then  claude"
-}
-
-# ---------------------------------------------------------------------------
-# Kokoro TTS model setup
-# ---------------------------------------------------------------------------
-
-function Install-KokoroModels {
-    Write-Header 'Kokoro TTS model setup'
-
-    # Detect the repo root — the script lives in the repo root, so use its directory
-    $repoRoot = $PSScriptRoot
-
-    # Expected source: a folder named kokoro-en-v0_19 (or similar) in the repo root,
-    # or the files loose in a tts_models folder. We look for model.onnx or kokoro*.onnx.
-    $sourceDir = $null
-
-    # Option 1: extracted folder sitting in repo root
-    $candidate = Get-ChildItem -Path $repoRoot -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match 'kokoro' } |
-        Select-Object -First 1
-    if ($candidate) { $sourceDir = $candidate.FullName }
-
-    # Option 2: files are loose in repo root itself (user extracted in place)
-    if (-not $sourceDir) {
-        $looseOnnx = Get-ChildItem -Path $repoRoot -Filter '*.onnx' -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match 'kokoro' } |
-            Select-Object -First 1
-        if ($looseOnnx) { $sourceDir = $repoRoot }
-    }
-
-    if (-not $sourceDir) {
-        # Not found locally — download automatically
-        $archiveName = 'kokoro-en-v0_19.tar.bz2'
-        $downloadUrl = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$archiveName"
-        $archivePath = Join-Path $repoRoot $archiveName
-
-        Write-Step "Kokoro models not found locally. Downloading (~335 MB)..."
-        Write-Info "  Source: $downloadUrl"
-
-        try {
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath -UseBasicParsing
-            $ProgressPreference = 'Continue'
-            Write-Pass "Download complete: $archiveName"
-        }
-        catch {
-            Write-Fail "Download failed: $_"
-            Write-Info 'Download manually from: https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2'
-            Write-Info 'Extract into the repo root folder, then re-run this script.'
-            return
-        }
-
-        # Install 7-Zip for reliable .tar.bz2 extraction on Windows
-        $sevenZipExe = $null
-        $sevenZipCandidates = @(
-            'C:\Program Files\7-Zip\7z.exe',
-            'C:\Program Files (x86)\7-Zip\7z.exe'
-        )
-        foreach ($c in $sevenZipCandidates) {
-            if (Test-Path $c) { $sevenZipExe = $c; break }
-        }
-
-        if (-not $sevenZipExe) {
-            Write-Step 'Installing 7-Zip for archive extraction...'
-            $prevEAP2 = $ErrorActionPreference
-            $ErrorActionPreference = 'SilentlyContinue'
-            & winget install --id 7zip.7zip --exact --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
-            $ErrorActionPreference = $prevEAP2
-            foreach ($c in $sevenZipCandidates) {
-                if (Test-Path $c) { $sevenZipExe = $c; break }
-            }
-        }
-
-        if (-not $sevenZipExe) {
-            Write-Fail '7-Zip not found after install attempt.'
-            Write-Info "Manual fix: install 7-Zip from https://7-zip.org then run:"
-            Write-Info "  `"C:\Program Files\7-Zip\7z.exe`" x `"$archivePath`" -o`"$repoRoot`" -y"
-            Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
-            return
-        }
-
-        Write-Pass "7-Zip found: $sevenZipExe"
-
-        # 7-Zip extracts .tar.bz2 in two passes: .bz2 -> .tar, then .tar -> folder
-        Write-Step "Extracting $archiveName..."
-        $prevEAP = $ErrorActionPreference
-        $ErrorActionPreference = 'SilentlyContinue'
-
-        # Pass 1: decompress .bz2 to .tar
-        & $sevenZipExe x $archivePath "-o$repoRoot" -y 2>&1 | Out-Null
-        $tarPath = $archivePath -replace '\.bz2$', ''
-
-        # Pass 2: extract .tar
-        if (Test-Path $tarPath) {
-            & $sevenZipExe x $tarPath "-o$repoRoot" -y 2>&1 | Out-Null
-            Remove-Item $tarPath -Force -ErrorAction SilentlyContinue
-        }
-
-        $tarExit = $LASTEXITCODE
-        $ErrorActionPreference = $prevEAP
-
-        if ($tarExit -ne 0) {
-            Write-Fail "Extraction failed (exit: $tarExit)."
-            Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
-            return
-        }
-
-        Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
-        Write-Pass 'Extraction complete'
-
-        # Re-detect after extraction
-        $candidate = Get-ChildItem -Path $repoRoot -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match 'kokoro' } |
-            Select-Object -First 1
-        if ($candidate) {
-            $sourceDir = $candidate.FullName
-            Write-Pass "Models ready at: $sourceDir"
-        }
-        else {
-            Write-Fail 'Could not locate extracted model directory. Check the repo root manually.'
-            return
-        }
-    }
-
-    Write-Pass "Found Kokoro source at: $sourceDir"
-
-    # Locate the Flutter project — look for pubspec.yaml in repo root or one level down
-    $pubspec = $null
-    $flutterProjectRoot = $null
-
-    $directPubspec = Join-Path $repoRoot 'pubspec.yaml'
-    if (Test-Path $directPubspec) {
-        $pubspec = $directPubspec
-        $flutterProjectRoot = $repoRoot
-    }
-    else {
-        $nested = Get-ChildItem -Path $repoRoot -Filter 'pubspec.yaml' -Recurse -Depth 2 -ErrorAction SilentlyContinue |
-            Select-Object -First 1
-        if ($nested) {
-            $pubspec = $nested.FullName
-            $flutterProjectRoot = $nested.DirectoryName
-        }
-    }
-
-    if (-not $flutterProjectRoot) {
-        Write-Warn 'Flutter project (pubspec.yaml) not found.'
-        Write-Info 'Create the project first: flutter create threadcast --org com.threadcast --platforms android,ios'
-        Write-Info 'Then re-run this script to copy the model files.'
-        return
-    }
-
-    Write-Pass "Flutter project found at: $flutterProjectRoot"
-
-    # Create target directory - FIXED for PowerShell 5.1 compatibility
-    $targetDir = Join-Path (Join-Path $flutterProjectRoot 'assets') 'tts_models'
-    if (-not (Test-Path $targetDir)) {
-        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        Write-Info "Created: $targetDir"
-    }
-
-    # Map of source filename patterns to target filenames
-    # Handles both the official naming (model.onnx) and any kokoro*.onnx variant
-    Write-Step 'Copying model files...'
-
-    # ONNX model — may be named model.onnx or kokoro-v0_19.onnx etc.
-    $onnxSrc = Get-ChildItem -Path $sourceDir -Filter '*.onnx' -ErrorAction SilentlyContinue |
-        Select-Object -First 1
-    if ($onnxSrc) {
-        Copy-Item $onnxSrc.FullName -Destination (Join-Path $targetDir 'kokoro-v0_19.onnx') -Force
-        Write-Pass "  kokoro-v0_19.onnx ($([math]::Round($onnxSrc.Length / 1MB, 1)) MB)"
-    }
-    else {
-        Write-Warn '  No .onnx file found in source directory'
-    }
-
-    # voices.bin
-    $voicesSrc = Join-Path $sourceDir 'voices.bin'
-    if (Test-Path $voicesSrc) {
-        Copy-Item $voicesSrc -Destination (Join-Path $targetDir 'voices.bin') -Force
-        $sz = [math]::Round((Get-Item $voicesSrc).Length / 1MB, 1)
-        Write-Pass "  voices.bin ($sz MB)"
-    }
-    else {
-        Write-Warn '  voices.bin not found'
-    }
-
-    # tokens.txt
-    $tokensSrc = Join-Path $sourceDir 'tokens.txt'
-    if (Test-Path $tokensSrc) {
-        Copy-Item $tokensSrc -Destination (Join-Path $targetDir 'tokens.txt') -Force
-        Write-Pass '  tokens.txt'
-    }
-    else {
-        Write-Warn '  tokens.txt not found'
-    }
-
-    # espeak-ng-data directory (recursive copy)
-    $espeakSrc = Join-Path $sourceDir 'espeak-ng-data'
-    if (Test-Path $espeakSrc) {
-        $espeakDest = Join-Path $targetDir 'espeak-ng-data'
-        if (Test-Path $espeakDest) {
-            Remove-Item $espeakDest -Recurse -Force
-        }
-        Copy-Item $espeakSrc -Destination $espeakDest -Recurse -Force
-        $fileCount = (Get-ChildItem $espeakDest -Recurse -File).Count
-        Write-Pass "  espeak-ng-data/ ($fileCount files)"
-    }
-    else {
-        Write-Warn '  espeak-ng-data/ directory not found — G2P phoneme conversion will fail at runtime'
-    }
-
-    # Update pubspec.yaml to register the assets if not already present
-    Write-Step 'Updating pubspec.yaml...'
-    $pubspecContent = Get-Content $pubspec -Raw
-
-    $assetEntries = @(
-        '    - assets/tts_models/kokoro-v0_19.onnx',
-        '    - assets/tts_models/voices.bin',
-        '    - assets/tts_models/tokens.txt',
-        '    - assets/tts_models/espeak-ng-data/'
-    )
-
-    $needsUpdate = $false
-    foreach ($entry in $assetEntries) {
-        if ($pubspecContent -notmatch [regex]::Escape($entry.Trim())) {
-            $needsUpdate = $true
-            break
-        }
-    }
-
-    if ($needsUpdate) {
-        # Check if a flutter: assets: section already exists
-        if ($pubspecContent -match 'flutter:') {
-            if ($pubspecContent -match '  assets:') {
-                # Assets section exists — append entries after the assets: line
-                $insertAfter = '  assets:'
-                $newEntries = $assetEntries -join "`n"
-                $pubspecContent = $pubspecContent -replace [regex]::Escape($insertAfter), "$insertAfter`n$newEntries"
-            }
-            else {
-                # Flutter section exists but no assets: block — add it
-                $insertAfter = 'flutter:'
-                $newBlock = "flutter:`n  assets:`n" + ($assetEntries -join "`n")
-                $pubspecContent = $pubspecContent -replace [regex]::Escape($insertAfter), $newBlock
-            }
-        }
-        else {
-            # No flutter section at all — append at end
-            $pubspecContent += "`n`nflutter:`n  uses-material-design: true`n  assets:`n" + ($assetEntries -join "`n") + "`n"
-        }
-        Set-Content -Path $pubspec -Value $pubspecContent -NoNewline
-        Write-Pass 'pubspec.yaml updated with asset entries'
-    }
-    else {
-        Write-Pass 'pubspec.yaml already contains asset entries'
-    }
-
-    # Summary of what landed
-    $totalSize = (Get-ChildItem $targetDir -Recurse -File |
-        Measure-Object -Property Length -Sum).Sum
-    $totalMB = [math]::Round($totalSize / 1MB, 1)
-    Write-Pass "Kokoro TTS models installed ($totalMB MB total in assets/tts_models/)"
-    Write-Info 'Note: espeak-ng-data will be extracted to app documents dir on first launch (see CLAUDE.md)'
 }
 
 # ---------------------------------------------------------------------------
@@ -1361,26 +1189,19 @@ function Invoke-FlutterDoctor {
 
     $flutterBat = "$FlutterBinDir\flutter.bat"
     if (-not (Test-Path $flutterBat)) {
-        Write-Warn 'Flutter not found at expected path. Run flutter doctor manually after restarting your terminal.'
+        Write-Warn 'Flutter not found. Run flutter doctor manually after restarting your terminal.'
         return
     }
 
     Write-Step 'Running flutter doctor...'
-    $prevEAP = $ErrorActionPreference
-    $ErrorActionPreference = 'SilentlyContinue'
+    $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
     $doctorOutput = & $flutterBat doctor -v 2>&1
     $ErrorActionPreference = $prevEAP
     $doctorOutput | ForEach-Object {
         $line = $_.ToString()
-        if ($line -match '^\[v\]' -or $line -match '^\[OK\]' -or $line -match '^  .' ) {
-            Write-Host "  $line" -ForegroundColor Green
-        }
-        elseif ($line -match '^\[X\]' -or $line -match '^\[!\]') {
-            Write-Host "  $line" -ForegroundColor Yellow
-        }
-        elseif ($line.Trim() -ne '') {
-            Write-Host "  $line" -ForegroundColor DarkGray
-        }
+        if     ($line -match '^\[v\]|^\[OK\]|^  \.')  { Write-Host "  $line" -ForegroundColor Green  }
+        elseif ($line -match '^\[X\]|^\[!\]')          { Write-Host "  $line" -ForegroundColor Yellow }
+        elseif ($line.Trim() -ne '')                    { Write-Host "  $line" -ForegroundColor DarkGray }
     }
 }
 
@@ -1399,28 +1220,29 @@ function Write-Summary {
 
     if ($script:NeedsAndroidInit) {
         Write-Host '  ACTION REQUIRED - Android Studio first-run:' -ForegroundColor Yellow
-        Write-Host '    1. Open Android Studio from the Start menu' -ForegroundColor White
-        Write-Host '    2. Complete the setup wizard (accept all defaults)' -ForegroundColor White
-        Write-Host '    3. Wait for the initial SDK download to finish' -ForegroundColor White
-        Write-Host '    4. Close Android Studio' -ForegroundColor White
-        Write-Host '    5. Re-run this script to install API 36 and create the AVD' -ForegroundColor White
+        Write-Host '    1. Open Android Studio from the Start menu'         -ForegroundColor White
+        Write-Host '    2. Complete the setup wizard (accept all defaults)'  -ForegroundColor White
+        Write-Host '    3. Wait for the initial SDK download to finish'      -ForegroundColor White
+        Write-Host '    4. Close Android Studio'                             -ForegroundColor White
+        Write-Host '    5. Re-run this script'                               -ForegroundColor White
         Write-Host ''
     }
 
+    Write-Host '  IMPORTANT -- ffmpeg_kit_flutter_new first-build quirk:' -ForegroundColor Yellow
+    Write-Host '    The first `flutter run` or `flutter build` will fail with an AAR' -ForegroundColor White
+    Write-Host '    download error. This is expected and documented behavior.'         -ForegroundColor White
+    Write-Host '    Run the same command a SECOND time and it will succeed.'           -ForegroundColor White
+    Write-Host ''
+
     Write-Host '  Next steps:' -ForegroundColor Cyan
-    Write-Host '    1. Open a new terminal (PATH changes take effect in new windows)' -ForegroundColor White
-    Write-Host '    2. Run: flutter doctor' -ForegroundColor White
-    Write-Host '       Fix any remaining [!] or [X] items before writing code' -ForegroundColor DarkGray
-    Write-Host '    3. Register your Reddit app at reddit.com/prefs/apps' -ForegroundColor White
-    Write-Host '       App type: installed app  |  Redirect URI: threadcast://oauth/callback' -ForegroundColor DarkGray
-    Write-Host '    4. Download Kokoro TTS model files:' -ForegroundColor White
-    Write-Host '       github.com/k2-fsa/sherpa-onnx/releases' -ForegroundColor DarkGray
-    Write-Host '    5. cd D:\github\Threadcast  then  claude' -ForegroundColor White
+    Write-Host '    1. Open a new terminal (PATH changes take effect in new windows)'  -ForegroundColor White
+    Write-Host '    2. Run: flutter doctor -- fix any [!] or [X] items'                -ForegroundColor White
+    Write-Host '    3. Submit Reddit API approval: support.reddithelp.com'            -ForegroundColor White
+    Write-Host '    4. cd D:\github\Threadcast  then  claude'                         -ForegroundColor White
     Write-Host ''
     Write-Host '  iOS note:' -ForegroundColor Cyan
-    Write-Host '    iOS builds require macOS + Xcode and cannot be compiled on Windows.' -ForegroundColor White
-    Write-Host '    Options: MacStadium cloud Mac, or Codemagic CI free tier (500 min/month)' -ForegroundColor DarkGray
-    Write-Host '    https://codemagic.io' -ForegroundColor DarkGray
+    Write-Host '    iOS builds require macOS + Xcode. Use Codemagic CI (Issue #27).'  -ForegroundColor White
+    Write-Host '    https://codemagic.io (500 free minutes/month)'                    -ForegroundColor DarkGray
     Write-Host ''
 
     if ($script:FailCount -gt 0) {
@@ -1433,15 +1255,15 @@ function Write-Summary {
 # Entry point
 # ---------------------------------------------------------------------------
 
-# Force UTF-8 output so bullet points and special chars render correctly
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host ''
-Write-Host '  =========================================================' -ForegroundColor Cyan
-Write-Host '   THREADCAST  -  Windows Developer Environment Setup'       -ForegroundColor Cyan
-Write-Host '   Flutter + Android Studio + JDK 17 + Node.js + Claude Code + Kokoro TTS + Project Scaffold' -ForegroundColor DarkGray
-Write-Host '  =========================================================' -ForegroundColor Cyan
+Write-Host '  ================================================================' -ForegroundColor Cyan
+Write-Host '   THREADCAST  -  Windows Developer Environment Setup'              -ForegroundColor Cyan
+Write-Host '   Flutter + Android Studio + JDK 17 + Node + Claude Code + TTS'   -ForegroundColor DarkGray
+Write-Host '   Database: drift  |  FFmpeg: ffmpeg_kit_flutter_new'              -ForegroundColor DarkGray
+Write-Host '  ================================================================' -ForegroundColor Cyan
 Write-Host ''
 
 Test-Preflight

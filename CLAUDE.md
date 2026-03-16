@@ -23,9 +23,9 @@ Threadcast is a Flutter mobile app (iOS + Android) that converts Reddit posts fr
 | TTS engine | Kokoro-82M via sherpa_onnx Flutter plugin |
 | Reddit API | OAuth 2.0, script-type app, free tier (100 QPM) |
 | HTTP client | dio |
-| Local database | Isar (fast, Flutter-native NoSQL) |
+| Local database | Drift + drift_flutter (actively maintained SQLite ORM) |
 | Audio playback | just_audio |
-| Audio export | ffmpeg_kit_flutter (WAV → MP3 encoding) |
+| Audio export | ffmpeg_kit_flutter_new (community fork of retired ffmpeg_kit_flutter) |
 | File sharing | share_plus |
 | Secure storage | flutter_secure_storage (OAuth tokens) |
 | Platform channels | Standard Flutter MethodChannel (LLM bridge only) |
@@ -106,7 +106,7 @@ threadcast/
 │   │       ├── voice_assignment.dart      # Speaker → voice mapping
 │   │       └── audio_stitcher.dart        # Merge per-speaker audio segments
 │   ├── models/
-│   │   └── episode.dart                   # Isar schema
+│   │   └── episode.dart                   # Drift schema
 │   └── shared/
 │       ├── widgets/
 │       │   ├── threadcast_scaffold.dart
@@ -1050,35 +1050,31 @@ Future<String> encodeToMp3(String wavPath, String episodeId) async {
 
 ## Data Persistence
 
-### Episode Schema (Isar)
+### Episode Schema (Drift)
 
 ```dart
 // lib/models/episode.dart
+// Full implementation written by migrate-dependencies.ps1.
+// Key points for implementing tickets:
 
-@collection
-class Episode {
-  Id id = Isar.autoIncrement;
+// Drift Episode is an IMMUTABLE data class.
+// Never use cascade mutation (Episode()..field = value).
+// All writes use EpisodesCompanion with Value() wrappers:
 
-  late String episodeId;          // UUID
-  late String title;
-  late String subreddit;
-  late List<String> sourceUrls;   // Original Reddit URLs (ordered)
-  late String tone;
+await db.upsertEpisode(EpisodesCompanion(
+  episodeId:      Value(episodeId),
+  title:          Value(analysis['episode_title'] as String),
+  subreddit:      Value(posts.first.subreddit),
+  sourceUrlsJson: Value(AppDatabase.encodeUrls(urls)),
+  tone:           Value(analysis['tone'] as String),
+  createdAt:      Value(DateTime.now()),
+  durationSeconds: Value(durationSecs),
+  audioWavPath:   Value(finalAudioPath),
+  status:         Value(AppDatabase.encodeStatus(EpisodeStatus.complete)),
+));
 
-  late DateTime createdAt;
-  late int durationSeconds;
-
-  // File paths (relative to app documents dir)
-  String? audioWavPath;
-  String? audioMp3Path;
-  String? transcriptJsonPath;    // Full transcript JSON for transcript view
-
-  // Generation state
-  @enumerated
-  late EpisodeStatus status;     // pending | generating | complete | failed
-
-  String? errorMessage;
-}
+// Partial updates (e.g. after MP3 encoding):
+await db.updateEpisodeFields(episode.id, audioMp3Path: mp3Path);
 
 enum EpisodeStatus { pending, generating, complete, failed }
 ```
@@ -1087,38 +1083,25 @@ enum EpisodeStatus { pending, generating, complete, failed }
 
 ```dart
 // lib/features/library/library_provider.dart
+// Full implementation written by migrate-dependencies.ps1.
 
-@riverpod
-class LibraryNotifier extends _$LibraryNotifier {
+class LibraryNotifier extends StateNotifier<AsyncValue<List<Episode>>> {
+  final Ref _ref;
 
-  @override
-  Future<List<Episode>> build() async {
-    final isar = await ref.watch(isarProvider.future);
-    return isar.episodes
-        .filter()
-        .statusEqualTo(EpisodeStatus.complete)
-        .sortByCreatedAtDesc()
-        .findAll();
+  LibraryNotifier(this._ref) : super(const AsyncValue.loading()) {
+    reload();
   }
 
-  Future<void> deleteEpisode(String episodeId) async {
-    final isar = await ref.watch(isarProvider.future);
-    final episode = await isar.episodes
-        .filter()
-        .episodeIdEqualTo(episodeId)
-        .findFirst();
-    if (episode == null) return;
+  Future<void> reload() async {
+    final episodes = await _ref.read(databaseProvider).completedEpisodes();
+    state = AsyncValue.data(episodes);
+  }
 
-    // Delete audio files
-    if (episode.audioWavPath != null) {
-      await File(episode.audioWavPath!).deleteIfExists();
-    }
-    if (episode.audioMp3Path != null) {
-      await File(episode.audioMp3Path!).deleteIfExists();
-    }
-
-    await isar.writeTxn(() => isar.episodes.delete(episode.id));
-    ref.invalidateSelf();
+  Future<void> deleteEpisode(int rowId, {String? wavPath, String? mp3Path}) async {
+    if (wavPath != null) await File(wavPath).deleteIfExists();
+    if (mp3Path != null) await File(mp3Path).deleteIfExists();
+    await _ref.read(databaseProvider).deleteEpisodeById(rowId);
+    await reload();
   }
 }
 ```
@@ -1174,12 +1157,9 @@ class ExportService {
     }
     // Encode on demand if not already done
     final mp3Path = await encodeToMp3(episode.audioWavPath!, episode.episodeId);
-    // Persist the path
-    final isar = GetIt.I<Isar>();
-    await isar.writeTxn(() async {
-      episode.audioMp3Path = mp3Path;
-      await isar.episodes.put(episode);
-    });
+    // Persist the path using Drift partial update
+    // (pass db from the calling context -- see databaseProvider)
+    await db.updateEpisodeFields(episode.id, audioMp3Path: mp3Path);
     return mp3Path;
   }
 
@@ -1327,8 +1307,8 @@ class CreateNotifier extends _$CreateNotifier {
         ..audioWavPath = finalAudioPath
         ..status = EpisodeStatus.complete;
 
-      final isar = ref.read(isarProvider).requireValue;
-      await isar.writeTxn(() => isar.episodes.put(episode));
+      final db = ref.read(databaseProvider);
+      await db.upsertEpisode(EpisodesCompanion(/* ... all fields ... */));
 
       state = CreateState.complete(episode: episode);
 
@@ -1494,33 +1474,36 @@ dependencies:
   # State management & navigation
   flutter_riverpod: ^2.5.0
   riverpod_annotation: ^2.3.0
-  go_router: ^17.0.0
+  go_router: ^14.0.0
 
   # Networking
   dio: ^5.4.0
 
   # Reddit OAuth
-  flutter_web_auth_2: ^5.0.1    # WebView-based OAuth
-  flutter_secure_storage: ^10.0.0
+  flutter_web_auth_2: ^4.0.0    # WebView-based OAuth
+  flutter_secure_storage: ^9.0.0
 
   # LLM (platform channels — no pub.dev package needed)
   # Implemented via MethodChannel in android/ and ios/ directories
 
   # TTS
-  sherpa_onnx: ^1.12.0
+  sherpa_onnx: ^1.9.0
 
   # Audio
-  just_audio: ^0.10.5
+  just_audio: ^0.9.0
   # Audio export — ffmpeg_kit_flutter was retired Jan 2025, use the community fork
-  ffmpeg_kit_flutter: ^6.0.3   # Drop-in replacement, identical API
+  # ffmpeg_kit_flutter was retired Jan 2025
+  # ffmpeg_kit_flutter_new is the original author's recommended community fork
+  # IMPORTANT: First Gradle build fails on AAR download -- run flutter run TWICE
+  ffmpeg_kit_flutter_new: ^2.0.0
 
-  # Database
-  isar: ^3.1.0
-  isar_flutter_libs: ^3.1.0
+  # Database -- drift replaces unmaintained isar (abandoned 2023)
+  drift: ^2.20.0
+  drift_flutter: ^0.2.0
   path_provider: ^2.1.0
 
   # Sharing & export
-  share_plus: ^12.0.1
+  share_plus: ^9.0.0
 
   # Utilities
   uuid: ^4.3.0
@@ -1531,7 +1514,7 @@ dev_dependencies:
     sdk: flutter
   riverpod_generator: ^2.4.0
   build_runner: ^2.4.0
-  isar_generator: ^3.1.0
+  drift_dev: ^2.20.0       # code generator for drift (run: dart run build_runner build)
   flutter_lints: ^4.0.0
 
 flutter:

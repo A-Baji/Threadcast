@@ -2,2253 +2,837 @@
 
 part of 'episode.dart';
 
-// **************************************************************************
-// IsarCollectionGenerator
-// **************************************************************************
-
-// coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
-
-extension GetEpisodeCollection on Isar {
-  IsarCollection<Episode> get episodes => this.collection();
-}
-
-const EpisodeSchema = CollectionSchema(
-  name: r'Episode',
-  id: -3258565036328751473,
-  properties: {
-    r'audioMp3Path': PropertySchema(
-      id: 0,
-      name: r'audioMp3Path',
-      type: IsarType.string,
-    ),
-    r'audioWavPath': PropertySchema(
-      id: 1,
-      name: r'audioWavPath',
-      type: IsarType.string,
-    ),
-    r'createdAt': PropertySchema(
-      id: 2,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
-    r'durationSeconds': PropertySchema(
-      id: 3,
-      name: r'durationSeconds',
-      type: IsarType.long,
-    ),
-    r'episodeId': PropertySchema(
-      id: 4,
-      name: r'episodeId',
-      type: IsarType.string,
-    ),
-    r'errorMessage': PropertySchema(
-      id: 5,
-      name: r'errorMessage',
-      type: IsarType.string,
-    ),
-    r'sourceUrls': PropertySchema(
-      id: 6,
-      name: r'sourceUrls',
-      type: IsarType.stringList,
-    ),
-    r'status': PropertySchema(
-      id: 7,
-      name: r'status',
-      type: IsarType.byte,
-      enumMap: _EpisodestatusEnumValueMap,
-    ),
-    r'subreddit': PropertySchema(
-      id: 8,
-      name: r'subreddit',
-      type: IsarType.string,
-    ),
-    r'title': PropertySchema(
-      id: 9,
-      name: r'title',
-      type: IsarType.string,
-    ),
-    r'tone': PropertySchema(
-      id: 10,
-      name: r'tone',
-      type: IsarType.string,
-    ),
-    r'transcriptJsonPath': PropertySchema(
-      id: 11,
-      name: r'transcriptJsonPath',
-      type: IsarType.string,
-    )
-  },
-  estimateSize: _episodeEstimateSize,
-  serialize: _episodeSerialize,
-  deserialize: _episodeDeserialize,
-  deserializeProp: _episodeDeserializeProp,
-  idName: r'id',
-  indexes: {},
-  links: {},
-  embeddedSchemas: {},
-  getId: _episodeGetId,
-  getLinks: _episodeGetLinks,
-  attach: _episodeAttach,
-  version: '3.1.0+1',
-);
-
-int _episodeEstimateSize(
-  Episode object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  {
-    final value = object.audioMp3Path;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+// ignore_for_file: type=lint
+class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EpisodesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta('episodeId');
+  @override
+  late final GeneratedColumn<String> episodeId =
+      GeneratedColumn<String>('episode_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title =
+      GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _subredditMeta = const VerificationMeta('subreddit');
+  @override
+  late final GeneratedColumn<String> subreddit =
+      GeneratedColumn<String>('subreddit', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceUrlsJsonMeta = const VerificationMeta('sourceUrlsJson');
+  @override
+  late final GeneratedColumn<String> sourceUrlsJson = GeneratedColumn<String>('source_urls_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _toneMeta = const VerificationMeta('tone');
+  @override
+  late final GeneratedColumn<String> tone =
+      GeneratedColumn<String>('tone', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>('created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta('durationSeconds');
+  @override
+  late final GeneratedColumn<int> durationSeconds =
+      GeneratedColumn<int>('duration_seconds', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _audioWavPathMeta = const VerificationMeta('audioWavPath');
+  @override
+  late final GeneratedColumn<String> audioWavPath = GeneratedColumn<String>('audio_wav_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _audioMp3PathMeta = const VerificationMeta('audioMp3Path');
+  @override
+  late final GeneratedColumn<String> audioMp3Path = GeneratedColumn<String>('audio_mp3_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _transcriptJsonPathMeta = const VerificationMeta('transcriptJsonPath');
+  @override
+  late final GeneratedColumn<String> transcriptJsonPath = GeneratedColumn<String>(
+      'transcript_json_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>('status', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: false, defaultValue: const Constant(0));
+  static const VerificationMeta _errorMessageMeta = const VerificationMeta('errorMessage');
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>('error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        episodeId,
+        title,
+        subreddit,
+        sourceUrlsJson,
+        tone,
+        createdAt,
+        durationSeconds,
+        audioWavPath,
+        audioMp3Path,
+        transcriptJsonPath,
+        status,
+        errorMessage
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'episodes';
+  @override
+  VerificationContext validateIntegrity(Insertable<Episode> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-  }
-  {
-    final value = object.audioWavPath;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    if (data.containsKey('episode_id')) {
+      context.handle(_episodeIdMeta, episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta));
+    } else if (isInserting) {
+      context.missing(_episodeIdMeta);
     }
-  }
-  bytesCount += 3 + object.episodeId.length * 3;
-  {
-    final value = object.errorMessage;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    if (data.containsKey('title')) {
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
     }
-  }
-  bytesCount += 3 + object.sourceUrls.length * 3;
-  {
-    for (var i = 0; i < object.sourceUrls.length; i++) {
-      final value = object.sourceUrls[i];
-      bytesCount += value.length * 3;
+    if (data.containsKey('subreddit')) {
+      context.handle(_subredditMeta, subreddit.isAcceptableOrUnknown(data['subreddit']!, _subredditMeta));
+    } else if (isInserting) {
+      context.missing(_subredditMeta);
     }
-  }
-  bytesCount += 3 + object.subreddit.length * 3;
-  bytesCount += 3 + object.title.length * 3;
-  bytesCount += 3 + object.tone.length * 3;
-  {
-    final value = object.transcriptJsonPath;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    if (data.containsKey('source_urls_json')) {
+      context.handle(
+          _sourceUrlsJsonMeta, sourceUrlsJson.isAcceptableOrUnknown(data['source_urls_json']!, _sourceUrlsJsonMeta));
+    } else if (isInserting) {
+      context.missing(_sourceUrlsJsonMeta);
     }
+    if (data.containsKey('tone')) {
+      context.handle(_toneMeta, tone.isAcceptableOrUnknown(data['tone']!, _toneMeta));
+    } else if (isInserting) {
+      context.missing(_toneMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta, createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+          _durationSecondsMeta, durationSeconds.isAcceptableOrUnknown(data['duration_seconds']!, _durationSecondsMeta));
+    } else if (isInserting) {
+      context.missing(_durationSecondsMeta);
+    }
+    if (data.containsKey('audio_wav_path')) {
+      context.handle(_audioWavPathMeta, audioWavPath.isAcceptableOrUnknown(data['audio_wav_path']!, _audioWavPathMeta));
+    }
+    if (data.containsKey('audio_mp3_path')) {
+      context.handle(_audioMp3PathMeta, audioMp3Path.isAcceptableOrUnknown(data['audio_mp3_path']!, _audioMp3PathMeta));
+    }
+    if (data.containsKey('transcript_json_path')) {
+      context.handle(_transcriptJsonPathMeta,
+          transcriptJsonPath.isAcceptableOrUnknown(data['transcript_json_path']!, _transcriptJsonPathMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta, status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(_errorMessageMeta, errorMessage.isAcceptableOrUnknown(data['error_message']!, _errorMessageMeta));
+    }
+    return context;
   }
-  return bytesCount;
-}
 
-void _episodeSerialize(
-  Episode object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeString(offsets[0], object.audioMp3Path);
-  writer.writeString(offsets[1], object.audioWavPath);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeLong(offsets[3], object.durationSeconds);
-  writer.writeString(offsets[4], object.episodeId);
-  writer.writeString(offsets[5], object.errorMessage);
-  writer.writeStringList(offsets[6], object.sourceUrls);
-  writer.writeByte(offsets[7], object.status.index);
-  writer.writeString(offsets[8], object.subreddit);
-  writer.writeString(offsets[9], object.title);
-  writer.writeString(offsets[10], object.tone);
-  writer.writeString(offsets[11], object.transcriptJsonPath);
-}
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Episode map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Episode(
+      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      subreddit: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}subreddit'])!,
+      sourceUrlsJson:
+          attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_urls_json'])!,
+      tone: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tone'])!,
+      createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      durationSeconds: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}duration_seconds'])!,
+      audioWavPath: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_wav_path']),
+      audioMp3Path: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_mp3_path']),
+      transcriptJsonPath:
+          attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}transcript_json_path']),
+      status: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      errorMessage: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}error_message']),
+    );
+  }
 
-Episode _episodeDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  final object = Episode();
-  object.audioMp3Path = reader.readStringOrNull(offsets[0]);
-  object.audioWavPath = reader.readStringOrNull(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.durationSeconds = reader.readLong(offsets[3]);
-  object.episodeId = reader.readString(offsets[4]);
-  object.errorMessage = reader.readStringOrNull(offsets[5]);
-  object.id = id;
-  object.sourceUrls = reader.readStringList(offsets[6]) ?? [];
-  object.status = _EpisodestatusValueEnumMap[reader.readByteOrNull(offsets[7])] ?? EpisodeStatus.pending;
-  object.subreddit = reader.readString(offsets[8]);
-  object.title = reader.readString(offsets[9]);
-  object.tone = reader.readString(offsets[10]);
-  object.transcriptJsonPath = reader.readStringOrNull(offsets[11]);
-  return object;
-}
-
-P _episodeDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
-    case 0:
-      return (reader.readStringOrNull(offset)) as P;
-    case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    case 2:
-      return (reader.readDateTime(offset)) as P;
-    case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
-    case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 7:
-      return (_EpisodestatusValueEnumMap[reader.readByteOrNull(offset)] ?? EpisodeStatus.pending) as P;
-    case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
-      return (reader.readString(offset)) as P;
-    case 10:
-      return (reader.readString(offset)) as P;
-    case 11:
-      return (reader.readStringOrNull(offset)) as P;
-    default:
-      throw IsarError('Unknown property with id $propertyId');
+  @override
+  $EpisodesTable createAlias(String alias) {
+    return $EpisodesTable(attachedDatabase, alias);
   }
 }
 
-const _EpisodestatusEnumValueMap = {
-  'pending': 0,
-  'generating': 1,
-  'complete': 2,
-  'failed': 3,
-};
-const _EpisodestatusValueEnumMap = {
-  0: EpisodeStatus.pending,
-  1: EpisodeStatus.generating,
-  2: EpisodeStatus.complete,
-  3: EpisodeStatus.failed,
-};
+class Episode extends DataClass implements Insertable<Episode> {
+  final int id;
+  final String episodeId;
+  final String title;
+  final String subreddit;
 
-Id _episodeGetId(Episode object) {
-  return object.id;
-}
-
-List<IsarLinkBase<dynamic>> _episodeGetLinks(Episode object) {
-  return [];
-}
-
-void _episodeAttach(IsarCollection<dynamic> col, Id id, Episode object) {
-  object.id = id;
-}
-
-extension EpisodeQueryWhereSort on QueryBuilder<Episode, Episode, QWhere> {
-  QueryBuilder<Episode, Episode, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-}
-
-extension EpisodeQueryWhere on QueryBuilder<Episode, Episode, QWhereClause> {
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idNotEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
-      }
-    });
+  /// Stored as JSON string. Use encodeUrls/decodeUrls helpers.
+  final String sourceUrlsJson;
+  final String tone;
+  final DateTime createdAt;
+  final int durationSeconds;
+  final String? audioWavPath;
+  final String? audioMp3Path;
+  final String? transcriptJsonPath;
+  final int status;
+  final String? errorMessage;
+  const Episode(
+      {required this.id,
+      required this.episodeId,
+      required this.title,
+      required this.subreddit,
+      required this.sourceUrlsJson,
+      required this.tone,
+      required this.createdAt,
+      required this.durationSeconds,
+      this.audioWavPath,
+      this.audioMp3Path,
+      this.transcriptJsonPath,
+      required this.status,
+      this.errorMessage});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['episode_id'] = Variable<String>(episodeId);
+    map['title'] = Variable<String>(title);
+    map['subreddit'] = Variable<String>(subreddit);
+    map['source_urls_json'] = Variable<String>(sourceUrlsJson);
+    map['tone'] = Variable<String>(tone);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    if (!nullToAbsent || audioWavPath != null) {
+      map['audio_wav_path'] = Variable<String>(audioWavPath);
+    }
+    if (!nullToAbsent || audioMp3Path != null) {
+      map['audio_mp3_path'] = Variable<String>(audioMp3Path);
+    }
+    if (!nullToAbsent || transcriptJsonPath != null) {
+      map['transcript_json_path'] = Variable<String>(transcriptJsonPath);
+    }
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    return map;
   }
 
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
+  EpisodesCompanion toCompanion(bool nullToAbsent) {
+    return EpisodesCompanion(
+      id: Value(id),
+      episodeId: Value(episodeId),
+      title: Value(title),
+      subreddit: Value(subreddit),
+      sourceUrlsJson: Value(sourceUrlsJson),
+      tone: Value(tone),
+      createdAt: Value(createdAt),
+      durationSeconds: Value(durationSeconds),
+      audioWavPath: audioWavPath == null && nullToAbsent ? const Value.absent() : Value(audioWavPath),
+      audioMp3Path: audioMp3Path == null && nullToAbsent ? const Value.absent() : Value(audioMp3Path),
+      transcriptJsonPath: transcriptJsonPath == null && nullToAbsent ? const Value.absent() : Value(transcriptJsonPath),
+      status: Value(status),
+      errorMessage: errorMessage == null && nullToAbsent ? const Value.absent() : Value(errorMessage),
+    );
+  }
+
+  factory Episode.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Episode(
+      id: serializer.fromJson<int>(json['id']),
+      episodeId: serializer.fromJson<String>(json['episodeId']),
+      title: serializer.fromJson<String>(json['title']),
+      subreddit: serializer.fromJson<String>(json['subreddit']),
+      sourceUrlsJson: serializer.fromJson<String>(json['sourceUrlsJson']),
+      tone: serializer.fromJson<String>(json['tone']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      audioWavPath: serializer.fromJson<String?>(json['audioWavPath']),
+      audioMp3Path: serializer.fromJson<String?>(json['audioMp3Path']),
+      transcriptJsonPath: serializer.fromJson<String?>(json['transcriptJsonPath']),
+      status: serializer.fromJson<int>(json['status']),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'episodeId': serializer.toJson<String>(episodeId),
+      'title': serializer.toJson<String>(title),
+      'subreddit': serializer.toJson<String>(subreddit),
+      'sourceUrlsJson': serializer.toJson<String>(sourceUrlsJson),
+      'tone': serializer.toJson<String>(tone),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'audioWavPath': serializer.toJson<String?>(audioWavPath),
+      'audioMp3Path': serializer.toJson<String?>(audioMp3Path),
+      'transcriptJsonPath': serializer.toJson<String?>(transcriptJsonPath),
+      'status': serializer.toJson<int>(status),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
+    };
+  }
+
+  Episode copyWith(
+          {int? id,
+          String? episodeId,
+          String? title,
+          String? subreddit,
+          String? sourceUrlsJson,
+          String? tone,
+          DateTime? createdAt,
+          int? durationSeconds,
+          Value<String?> audioWavPath = const Value.absent(),
+          Value<String?> audioMp3Path = const Value.absent(),
+          Value<String?> transcriptJsonPath = const Value.absent(),
+          int? status,
+          Value<String?> errorMessage = const Value.absent()}) =>
+      Episode(
+        id: id ?? this.id,
+        episodeId: episodeId ?? this.episodeId,
+        title: title ?? this.title,
+        subreddit: subreddit ?? this.subreddit,
+        sourceUrlsJson: sourceUrlsJson ?? this.sourceUrlsJson,
+        tone: tone ?? this.tone,
+        createdAt: createdAt ?? this.createdAt,
+        durationSeconds: durationSeconds ?? this.durationSeconds,
+        audioWavPath: audioWavPath.present ? audioWavPath.value : this.audioWavPath,
+        audioMp3Path: audioMp3Path.present ? audioMp3Path.value : this.audioMp3Path,
+        transcriptJsonPath: transcriptJsonPath.present ? transcriptJsonPath.value : this.transcriptJsonPath,
+        status: status ?? this.status,
+        errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
       );
-    });
+  Episode copyWithCompanion(EpisodesCompanion data) {
+    return Episode(
+      id: data.id.present ? data.id.value : this.id,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      title: data.title.present ? data.title.value : this.title,
+      subreddit: data.subreddit.present ? data.subreddit.value : this.subreddit,
+      sourceUrlsJson: data.sourceUrlsJson.present ? data.sourceUrlsJson.value : this.sourceUrlsJson,
+      tone: data.tone.present ? data.tone.value : this.tone,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      durationSeconds: data.durationSeconds.present ? data.durationSeconds.value : this.durationSeconds,
+      audioWavPath: data.audioWavPath.present ? data.audioWavPath.value : this.audioWavPath,
+      audioMp3Path: data.audioMp3Path.present ? data.audioMp3Path.value : this.audioMp3Path,
+      transcriptJsonPath: data.transcriptJsonPath.present ? data.transcriptJsonPath.value : this.transcriptJsonPath,
+      status: data.status.present ? data.status.value : this.status,
+      errorMessage: data.errorMessage.present ? data.errorMessage.value : this.errorMessage,
+    );
   }
 
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
+  @override
+  String toString() {
+    return (StringBuffer('Episode(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('title: $title, ')
+          ..write('subreddit: $subreddit, ')
+          ..write('sourceUrlsJson: $sourceUrlsJson, ')
+          ..write('tone: $tone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('audioWavPath: $audioWavPath, ')
+          ..write('audioMp3Path: $audioMp3Path, ')
+          ..write('transcriptJsonPath: $transcriptJsonPath, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage')
+          ..write(')'))
+        .toString();
   }
 
-  QueryBuilder<Episode, Episode, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  @override
+  int get hashCode => Object.hash(id, episodeId, title, subreddit, sourceUrlsJson, tone, createdAt, durationSeconds,
+      audioWavPath, audioMp3Path, transcriptJsonPath, status, errorMessage);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Episode &&
+          other.id == this.id &&
+          other.episodeId == this.episodeId &&
+          other.title == this.title &&
+          other.subreddit == this.subreddit &&
+          other.sourceUrlsJson == this.sourceUrlsJson &&
+          other.tone == this.tone &&
+          other.createdAt == this.createdAt &&
+          other.durationSeconds == this.durationSeconds &&
+          other.audioWavPath == this.audioWavPath &&
+          other.audioMp3Path == this.audioMp3Path &&
+          other.transcriptJsonPath == this.transcriptJsonPath &&
+          other.status == this.status &&
+          other.errorMessage == this.errorMessage);
+}
+
+class EpisodesCompanion extends UpdateCompanion<Episode> {
+  final Value<int> id;
+  final Value<String> episodeId;
+  final Value<String> title;
+  final Value<String> subreddit;
+  final Value<String> sourceUrlsJson;
+  final Value<String> tone;
+  final Value<DateTime> createdAt;
+  final Value<int> durationSeconds;
+  final Value<String?> audioWavPath;
+  final Value<String?> audioMp3Path;
+  final Value<String?> transcriptJsonPath;
+  final Value<int> status;
+  final Value<String?> errorMessage;
+  const EpisodesCompanion({
+    this.id = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.subreddit = const Value.absent(),
+    this.sourceUrlsJson = const Value.absent(),
+    this.tone = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.audioWavPath = const Value.absent(),
+    this.audioMp3Path = const Value.absent(),
+    this.transcriptJsonPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+  });
+  EpisodesCompanion.insert({
+    this.id = const Value.absent(),
+    required String episodeId,
+    required String title,
+    required String subreddit,
+    required String sourceUrlsJson,
+    required String tone,
+    required DateTime createdAt,
+    required int durationSeconds,
+    this.audioWavPath = const Value.absent(),
+    this.audioMp3Path = const Value.absent(),
+    this.transcriptJsonPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+  })  : episodeId = Value(episodeId),
+        title = Value(title),
+        subreddit = Value(subreddit),
+        sourceUrlsJson = Value(sourceUrlsJson),
+        tone = Value(tone),
+        createdAt = Value(createdAt),
+        durationSeconds = Value(durationSeconds);
+  static Insertable<Episode> custom({
+    Expression<int>? id,
+    Expression<String>? episodeId,
+    Expression<String>? title,
+    Expression<String>? subreddit,
+    Expression<String>? sourceUrlsJson,
+    Expression<String>? tone,
+    Expression<DateTime>? createdAt,
+    Expression<int>? durationSeconds,
+    Expression<String>? audioWavPath,
+    Expression<String>? audioMp3Path,
+    Expression<String>? transcriptJsonPath,
+    Expression<int>? status,
+    Expression<String>? errorMessage,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (title != null) 'title': title,
+      if (subreddit != null) 'subreddit': subreddit,
+      if (sourceUrlsJson != null) 'source_urls_json': sourceUrlsJson,
+      if (tone != null) 'tone': tone,
+      if (createdAt != null) 'created_at': createdAt,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (audioWavPath != null) 'audio_wav_path': audioWavPath,
+      if (audioMp3Path != null) 'audio_mp3_path': audioMp3Path,
+      if (transcriptJsonPath != null) 'transcript_json_path': transcriptJsonPath,
+      if (status != null) 'status': status,
+      if (errorMessage != null) 'error_message': errorMessage,
     });
+  }
+
+  EpisodesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? episodeId,
+      Value<String>? title,
+      Value<String>? subreddit,
+      Value<String>? sourceUrlsJson,
+      Value<String>? tone,
+      Value<DateTime>? createdAt,
+      Value<int>? durationSeconds,
+      Value<String?>? audioWavPath,
+      Value<String?>? audioMp3Path,
+      Value<String?>? transcriptJsonPath,
+      Value<int>? status,
+      Value<String?>? errorMessage}) {
+    return EpisodesCompanion(
+      id: id ?? this.id,
+      episodeId: episodeId ?? this.episodeId,
+      title: title ?? this.title,
+      subreddit: subreddit ?? this.subreddit,
+      sourceUrlsJson: sourceUrlsJson ?? this.sourceUrlsJson,
+      tone: tone ?? this.tone,
+      createdAt: createdAt ?? this.createdAt,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      audioWavPath: audioWavPath ?? this.audioWavPath,
+      audioMp3Path: audioMp3Path ?? this.audioMp3Path,
+      transcriptJsonPath: transcriptJsonPath ?? this.transcriptJsonPath,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (subreddit.present) {
+      map['subreddit'] = Variable<String>(subreddit.value);
+    }
+    if (sourceUrlsJson.present) {
+      map['source_urls_json'] = Variable<String>(sourceUrlsJson.value);
+    }
+    if (tone.present) {
+      map['tone'] = Variable<String>(tone.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (audioWavPath.present) {
+      map['audio_wav_path'] = Variable<String>(audioWavPath.value);
+    }
+    if (audioMp3Path.present) {
+      map['audio_mp3_path'] = Variable<String>(audioMp3Path.value);
+    }
+    if (transcriptJsonPath.present) {
+      map['transcript_json_path'] = Variable<String>(transcriptJsonPath.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EpisodesCompanion(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('title: $title, ')
+          ..write('subreddit: $subreddit, ')
+          ..write('sourceUrlsJson: $sourceUrlsJson, ')
+          ..write('tone: $tone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('audioWavPath: $audioWavPath, ')
+          ..write('audioMp3Path: $audioMp3Path, ')
+          ..write('transcriptJsonPath: $transcriptJsonPath, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage')
+          ..write(')'))
+        .toString();
   }
 }
 
-extension EpisodeQueryFilter on QueryBuilder<Episode, Episode, QFilterCondition> {
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'audioMp3Path',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'audioMp3Path',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'audioMp3Path',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'audioMp3Path',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'audioMp3Path',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'audioMp3Path',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioMp3PathIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'audioMp3Path',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'audioWavPath',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'audioWavPath',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'audioWavPath',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'audioWavPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'audioWavPath',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'audioWavPath',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> audioWavPathIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'audioWavPath',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> createdAtBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'createdAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'durationSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'durationSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'durationSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> durationSecondsBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'durationSeconds',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'episodeId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'episodeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'episodeId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'episodeId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> episodeIdIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'episodeId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'errorMessage',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'errorMessage',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'errorMessage',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'errorMessage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'errorMessage',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'errorMessage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> errorMessageIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'errorMessage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> idEqualTo(Id value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'sourceUrls',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'sourceUrls',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'sourceUrls',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'sourceUrls',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'sourceUrls',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> sourceUrlsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sourceUrls',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusEqualTo(EpisodeStatus value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusGreaterThan(
-    EpisodeStatus value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'status',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusLessThan(
-    EpisodeStatus value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'status',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> statusBetween(
-    EpisodeStatus lower,
-    EpisodeStatus upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'status',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'subreddit',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'subreddit',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'subreddit',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'subreddit',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> subredditIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'subreddit',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'title',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'title',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'title',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'title',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> titleIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'title',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tone',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'tone',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'tone',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tone',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> toneIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'tone',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'transcriptJsonPath',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'transcriptJsonPath',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'transcriptJsonPath',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'transcriptJsonPath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'transcriptJsonPath',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transcriptJsonPath',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterFilterCondition> transcriptJsonPathIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'transcriptJsonPath',
-        value: '',
-      ));
-    });
-  }
+abstract class _$AppDatabase extends GeneratedDatabase {
+  _$AppDatabase(QueryExecutor e) : super(e);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $EpisodesTable episodes = $EpisodesTable(this);
+  @override
+  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities => [episodes];
 }
 
-extension EpisodeQueryObject on QueryBuilder<Episode, Episode, QFilterCondition> {}
+typedef $$EpisodesTableCreateCompanionBuilder = EpisodesCompanion Function({
+  Value<int> id,
+  required String episodeId,
+  required String title,
+  required String subreddit,
+  required String sourceUrlsJson,
+  required String tone,
+  required DateTime createdAt,
+  required int durationSeconds,
+  Value<String?> audioWavPath,
+  Value<String?> audioMp3Path,
+  Value<String?> transcriptJsonPath,
+  Value<int> status,
+  Value<String?> errorMessage,
+});
+typedef $$EpisodesTableUpdateCompanionBuilder = EpisodesCompanion Function({
+  Value<int> id,
+  Value<String> episodeId,
+  Value<String> title,
+  Value<String> subreddit,
+  Value<String> sourceUrlsJson,
+  Value<String> tone,
+  Value<DateTime> createdAt,
+  Value<int> durationSeconds,
+  Value<String?> audioWavPath,
+  Value<String?> audioMp3Path,
+  Value<String?> transcriptJsonPath,
+  Value<int> status,
+  Value<String?> errorMessage,
+});
 
-extension EpisodeQueryLinks on QueryBuilder<Episode, Episode, QFilterCondition> {}
+class $$EpisodesTableFilterComposer extends Composer<_$AppDatabase, $EpisodesTable> {
+  $$EpisodesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
 
-extension EpisodeQuerySortBy on QueryBuilder<Episode, Episode, QSortBy> {
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByAudioMp3Path() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioMp3Path', Sort.asc);
-    });
-  }
+  ColumnFilters<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByAudioMp3PathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioMp3Path', Sort.desc);
-    });
-  }
+  ColumnFilters<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByAudioWavPath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioWavPath', Sort.asc);
-    });
-  }
+  ColumnFilters<String> get subreddit =>
+      $composableBuilder(column: $table.subreddit, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByAudioWavPathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioWavPath', Sort.desc);
-    });
-  }
+  ColumnFilters<String> get sourceUrlsJson =>
+      $composableBuilder(column: $table.sourceUrlsJson, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
-    });
-  }
+  ColumnFilters<String> get tone => $composableBuilder(column: $table.tone, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
+  ColumnFilters<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByDurationSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'durationSeconds', Sort.asc);
-    });
-  }
+  ColumnFilters<int> get durationSeconds =>
+      $composableBuilder(column: $table.durationSeconds, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByDurationSecondsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'durationSeconds', Sort.desc);
-    });
-  }
+  ColumnFilters<String> get audioWavPath =>
+      $composableBuilder(column: $table.audioWavPath, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByEpisodeId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeId', Sort.asc);
-    });
-  }
+  ColumnFilters<String> get audioMp3Path =>
+      $composableBuilder(column: $table.audioMp3Path, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByEpisodeIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeId', Sort.desc);
-    });
-  }
+  ColumnFilters<String> get transcriptJsonPath =>
+      $composableBuilder(column: $table.transcriptJsonPath, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByErrorMessage() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'errorMessage', Sort.asc);
-    });
-  }
+  ColumnFilters<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => ColumnFilters(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByErrorMessageDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'errorMessage', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByStatus() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByStatusDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortBySubreddit() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'subreddit', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortBySubredditDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'subreddit', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByTitle() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByTitleDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByTone() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tone', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByToneDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tone', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByTranscriptJsonPath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcriptJsonPath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> sortByTranscriptJsonPathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcriptJsonPath', Sort.desc);
-    });
-  }
+  ColumnFilters<String> get errorMessage =>
+      $composableBuilder(column: $table.errorMessage, builder: (column) => ColumnFilters(column));
 }
 
-extension EpisodeQuerySortThenBy on QueryBuilder<Episode, Episode, QSortThenBy> {
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByAudioMp3Path() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioMp3Path', Sort.asc);
-    });
-  }
+class $$EpisodesTableOrderingComposer extends Composer<_$AppDatabase, $EpisodesTable> {
+  $$EpisodesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByAudioMp3PathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioMp3Path', Sort.desc);
-    });
-  }
+  ColumnOrderings<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByAudioWavPath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioWavPath', Sort.asc);
-    });
-  }
+  ColumnOrderings<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByAudioWavPathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'audioWavPath', Sort.desc);
-    });
-  }
+  ColumnOrderings<String> get subreddit =>
+      $composableBuilder(column: $table.subreddit, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
-    });
-  }
+  ColumnOrderings<String> get sourceUrlsJson =>
+      $composableBuilder(column: $table.sourceUrlsJson, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
+  ColumnOrderings<String> get tone =>
+      $composableBuilder(column: $table.tone, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByDurationSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'durationSeconds', Sort.asc);
-    });
-  }
+  ColumnOrderings<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByDurationSecondsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'durationSeconds', Sort.desc);
-    });
-  }
+  ColumnOrderings<int> get durationSeconds =>
+      $composableBuilder(column: $table.durationSeconds, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByEpisodeId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeId', Sort.asc);
-    });
-  }
+  ColumnOrderings<String> get audioWavPath =>
+      $composableBuilder(column: $table.audioWavPath, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByEpisodeIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeId', Sort.desc);
-    });
-  }
+  ColumnOrderings<String> get audioMp3Path =>
+      $composableBuilder(column: $table.audioMp3Path, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByErrorMessage() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'errorMessage', Sort.asc);
-    });
-  }
+  ColumnOrderings<String> get transcriptJsonPath =>
+      $composableBuilder(column: $table.transcriptJsonPath, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByErrorMessageDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'errorMessage', Sort.desc);
-    });
-  }
+  ColumnOrderings<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => ColumnOrderings(column));
 
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenById() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByStatus() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByStatusDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenBySubreddit() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'subreddit', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenBySubredditDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'subreddit', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByTitle() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByTitleDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByTone() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tone', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByToneDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tone', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByTranscriptJsonPath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcriptJsonPath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Episode, Episode, QAfterSortBy> thenByTranscriptJsonPathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcriptJsonPath', Sort.desc);
-    });
-  }
+  ColumnOrderings<String> get errorMessage =>
+      $composableBuilder(column: $table.errorMessage, builder: (column) => ColumnOrderings(column));
 }
 
-extension EpisodeQueryWhereDistinct on QueryBuilder<Episode, Episode, QDistinct> {
-  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioMp3Path({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'audioMp3Path', caseSensitive: caseSensitive);
-    });
-  }
+class $$EpisodesTableAnnotationComposer extends Composer<_$AppDatabase, $EpisodesTable> {
+  $$EpisodesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByAudioWavPath({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'audioWavPath', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get episodeId => $composableBuilder(column: $table.episodeId, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
-    });
-  }
+  GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByDurationSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'durationSeconds');
-    });
-  }
+  GeneratedColumn<String> get subreddit => $composableBuilder(column: $table.subreddit, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByEpisodeId({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'episodeId', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get sourceUrlsJson =>
+      $composableBuilder(column: $table.sourceUrlsJson, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByErrorMessage({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'errorMessage', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get tone => $composableBuilder(column: $table.tone, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctBySourceUrls() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'sourceUrls');
-    });
-  }
+  GeneratedColumn<DateTime> get createdAt => $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByStatus() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'status');
-    });
-  }
+  GeneratedColumn<int> get durationSeconds =>
+      $composableBuilder(column: $table.durationSeconds, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctBySubreddit({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'subreddit', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get audioWavPath =>
+      $composableBuilder(column: $table.audioWavPath, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTitle({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get audioMp3Path =>
+      $composableBuilder(column: $table.audioMp3Path, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTone({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'tone', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<String> get transcriptJsonPath =>
+      $composableBuilder(column: $table.transcriptJsonPath, builder: (column) => column);
 
-  QueryBuilder<Episode, Episode, QDistinct> distinctByTranscriptJsonPath({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'transcriptJsonPath', caseSensitive: caseSensitive);
-    });
-  }
+  GeneratedColumn<int> get status => $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage =>
+      $composableBuilder(column: $table.errorMessage, builder: (column) => column);
 }
 
-extension EpisodeQueryProperty on QueryBuilder<Episode, Episode, QQueryProperty> {
-  QueryBuilder<Episode, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
-    });
-  }
+class $$EpisodesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EpisodesTable,
+    Episode,
+    $$EpisodesTableFilterComposer,
+    $$EpisodesTableOrderingComposer,
+    $$EpisodesTableAnnotationComposer,
+    $$EpisodesTableCreateCompanionBuilder,
+    $$EpisodesTableUpdateCompanionBuilder,
+    (Episode, BaseReferences<_$AppDatabase, $EpisodesTable, Episode>),
+    Episode,
+    PrefetchHooks Function()> {
+  $$EpisodesTableTableManager(_$AppDatabase db, $EpisodesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$EpisodesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$EpisodesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$EpisodesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> episodeId = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> subreddit = const Value.absent(),
+            Value<String> sourceUrlsJson = const Value.absent(),
+            Value<String> tone = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> durationSeconds = const Value.absent(),
+            Value<String?> audioWavPath = const Value.absent(),
+            Value<String?> audioMp3Path = const Value.absent(),
+            Value<String?> transcriptJsonPath = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+          }) =>
+              EpisodesCompanion(
+            id: id,
+            episodeId: episodeId,
+            title: title,
+            subreddit: subreddit,
+            sourceUrlsJson: sourceUrlsJson,
+            tone: tone,
+            createdAt: createdAt,
+            durationSeconds: durationSeconds,
+            audioWavPath: audioWavPath,
+            audioMp3Path: audioMp3Path,
+            transcriptJsonPath: transcriptJsonPath,
+            status: status,
+            errorMessage: errorMessage,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String episodeId,
+            required String title,
+            required String subreddit,
+            required String sourceUrlsJson,
+            required String tone,
+            required DateTime createdAt,
+            required int durationSeconds,
+            Value<String?> audioWavPath = const Value.absent(),
+            Value<String?> audioMp3Path = const Value.absent(),
+            Value<String?> transcriptJsonPath = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+          }) =>
+              EpisodesCompanion.insert(
+            id: id,
+            episodeId: episodeId,
+            title: title,
+            subreddit: subreddit,
+            sourceUrlsJson: sourceUrlsJson,
+            tone: tone,
+            createdAt: createdAt,
+            durationSeconds: durationSeconds,
+            audioWavPath: audioWavPath,
+            audioMp3Path: audioMp3Path,
+            transcriptJsonPath: transcriptJsonPath,
+            status: status,
+            errorMessage: errorMessage,
+          ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ));
+}
 
-  QueryBuilder<Episode, String?, QQueryOperations> audioMp3PathProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'audioMp3Path');
-    });
-  }
+typedef $$EpisodesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $EpisodesTable,
+    Episode,
+    $$EpisodesTableFilterComposer,
+    $$EpisodesTableOrderingComposer,
+    $$EpisodesTableAnnotationComposer,
+    $$EpisodesTableCreateCompanionBuilder,
+    $$EpisodesTableUpdateCompanionBuilder,
+    (Episode, BaseReferences<_$AppDatabase, $EpisodesTable, Episode>),
+    Episode,
+    PrefetchHooks Function()>;
 
-  QueryBuilder<Episode, String?, QQueryOperations> audioWavPathProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'audioWavPath');
-    });
-  }
-
-  QueryBuilder<Episode, DateTime, QQueryOperations> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'createdAt');
-    });
-  }
-
-  QueryBuilder<Episode, int, QQueryOperations> durationSecondsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'durationSeconds');
-    });
-  }
-
-  QueryBuilder<Episode, String, QQueryOperations> episodeIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'episodeId');
-    });
-  }
-
-  QueryBuilder<Episode, String?, QQueryOperations> errorMessageProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'errorMessage');
-    });
-  }
-
-  QueryBuilder<Episode, List<String>, QQueryOperations> sourceUrlsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'sourceUrls');
-    });
-  }
-
-  QueryBuilder<Episode, EpisodeStatus, QQueryOperations> statusProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'status');
-    });
-  }
-
-  QueryBuilder<Episode, String, QQueryOperations> subredditProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'subreddit');
-    });
-  }
-
-  QueryBuilder<Episode, String, QQueryOperations> titleProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'title');
-    });
-  }
-
-  QueryBuilder<Episode, String, QQueryOperations> toneProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'tone');
-    });
-  }
-
-  QueryBuilder<Episode, String?, QQueryOperations> transcriptJsonPathProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'transcriptJsonPath');
-    });
-  }
+class $AppDatabaseManager {
+  final _$AppDatabase _db;
+  $AppDatabaseManager(this._db);
+  $$EpisodesTableTableManager get episodes => $$EpisodesTableTableManager(_db, _db.episodes);
 }

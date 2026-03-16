@@ -28,6 +28,8 @@ dependencies:
 
   # Audio playback
   just_audio: ^0.10.5
+
+  # Audio export -- ffmpeg_kit_flutter was retired Jan 2025.
   # ffmpeg_kit_flutter_new is the original author's recommended community fork.
   # IMPORTANT: The first Gradle build will fail (AAR download incomplete).
   #            Run `flutter run` a second time and it will succeed.

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'library_provider.dart';
@@ -19,7 +19,8 @@ class LibraryScreen extends ConsumerWidget {
           if (episodes.isEmpty) {
             return Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.podcasts, size: 64, color: Theme.of(context).colorScheme.outline),
+                Icon(Icons.podcasts, size: 64,
+                    color: Theme.of(context).colorScheme.outline),
                 const SizedBox(height: 16),
                 const Text('No episodes yet'),
                 const SizedBox(height: 8),
@@ -49,17 +50,19 @@ class LibraryScreen extends ConsumerWidget {
                     title: const Text('Delete episode?'),
                     content: const Text('This cannot be undone.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                      TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                      TextButton(onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Delete')),
                     ],
                   ),
                 ),
-                onDismissed: (_) => ref
-                    .read(libraryProvider.notifier)
+                onDismissed: (_) => ref.read(libraryProvider.notifier)
                     .deleteEpisode(ep.id, wavPath: ep.audioWavPath, mp3Path: ep.audioMp3Path),
                 child: ListTile(
                   title: Text(ep.title),
-                  subtitle: Text('${ep.subreddit} -- ${ep.durationSeconds ~/ 60}m ${ep.durationSeconds % 60}s'),
+                  subtitle: Text(
+                      '${ep.subreddit} -- ${ep.durationSeconds ~/ 60}m ${ep.durationSeconds % 60}s'),
                   trailing: const Icon(Icons.play_arrow),
                   onTap: () => context.push('/player/${ep.episodeId}'),
                 ),

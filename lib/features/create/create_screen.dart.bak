@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'create_provider.dart';
 
@@ -26,14 +26,14 @@ class CreateScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: state.status == CreateStatus.idle
-                  ? () => ref
-                      .read(createProvider.notifier)
+                  ? () => ref.read(createProvider.notifier)
                       .generatePodcast(['https://www.reddit.com/r/AITAH/comments/example/'])
                   : null,
               child: const Text('Generate (Mock)'),
             ),
             const SizedBox(height: 16),
-            if (state.status == CreateStatus.synthesizing) LinearProgressIndicator(value: state.progress),
+            if (state.status == CreateStatus.synthesizing)
+              LinearProgressIndicator(value: state.progress),
             if (state.status == CreateStatus.unsupported)
               const Padding(
                 padding: EdgeInsets.all(16),
@@ -43,7 +43,9 @@ class CreateScreen extends ConsumerWidget {
                 ),
               ),
             Text('Status: ${state.status.name}'),
-            if (state.error != null) Text('Error: ${state.error}', style: const TextStyle(color: Colors.red)),
+            if (state.error != null)
+              Text('Error: ${state.error}',
+                  style: const TextStyle(color: Colors.red)),
           ],
         ),
       ),

@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 
 // TODO: Implement full LLM platform channel
-// See CLAUDE.md - iOS: Foundation Models Framework
+// See CLAUDE.md -- iOS: Foundation Models Framework
 class LlmPlugin: NSObject, FlutterPlugin {
 
     static func register(with registrar: FlutterPluginRegistrar) {

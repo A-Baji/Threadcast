@@ -1,8 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../services/reddit/reddit_auth_service.dart';
 
-final onboardingProvider = StateNotifierProvider<OnboardingNotifier, OnboardingState>(
+final onboardingProvider =
+    StateNotifierProvider<OnboardingNotifier, OnboardingState>(
   (ref) => OnboardingNotifier(ref.watch(redditAuthServiceProvider)),
 );
 

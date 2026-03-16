@@ -1,10 +1,11 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/extensions.dart';
 import '../../core/providers.dart';
 import '../../models/episode.dart';
 
-final libraryProvider = StateNotifierProvider<LibraryNotifier, AsyncValue<List<Episode>>>(
+final libraryProvider =
+    StateNotifierProvider<LibraryNotifier, AsyncValue<List<Episode>>>(
   (ref) => LibraryNotifier(ref),
 );
 

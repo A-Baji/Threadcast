@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/episode.dart';
@@ -28,11 +28,11 @@ final redditAuthServiceProvider = Provider<RedditAuthService>(
 );
 
 final redditScraperProvider = Provider<RedditScraper>((ref) => RedditScraper(
-      ref.watch(dioProvider),
-      ref.watch(redditAuthServiceProvider),
-    ));
+  ref.watch(dioProvider),
+  ref.watch(redditAuthServiceProvider),
+));
 
-final llmServiceProvider = Provider<LlmService>((ref) => OsLlmService());
-final llmPromptBuilderProvider = Provider<LlmPromptBuilder>((ref) => LlmPromptBuilder());
-final ttsServiceProvider = Provider<TtsService>((ref) => TtsService());
-final audioStitcherProvider = Provider<AudioStitcher>((ref) => AudioStitcher());
+final llmServiceProvider       = Provider<LlmService>((ref)        => OsLlmService());
+final llmPromptBuilderProvider = Provider<LlmPromptBuilder>((ref)   => LlmPromptBuilder());
+final ttsServiceProvider       = Provider<TtsService>((ref)         => TtsService());
+final audioStitcherProvider    = Provider<AudioStitcher>((ref)      => AudioStitcher());

@@ -5,7 +5,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 // TODO: Implement full LLM platform channel
-// See CLAUDE.md - Android: Gemini Nano via ML Kit GenAI Prompt API
+// See CLAUDE.md -- Android: Gemini Nano via ML Kit GenAI Prompt API
 class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private lateinit var channel: MethodChannel
@@ -18,7 +18,7 @@ class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "isAvailable"         -> result.success(false)  // TODO: call service.isAvailable()
+            "isAvailable"         -> result.success(false)
             "generateTranscript"  -> result.error("NOT_IMPLEMENTED", "TODO", null)
             "cancelGeneration"    -> result.success(null)
             else                  -> result.notImplemented()
