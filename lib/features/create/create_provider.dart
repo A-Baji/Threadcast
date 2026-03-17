@@ -1,4 +1,5 @@
 ﻿import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,47 +19,134 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
   CreateNotifier(this._ref) : super(const CreateState.idle());
 
-  Future<void> generatePodcast(List<String> urls) async {
+  Future<void> checkCompatibilityOnLoad() async {
+    if (state.hasCheckedCompatibility || state.status == CreateStatus.checkingCompatibility) {
+      return;
+    }
+
+    state = state.copyWith(status: CreateStatus.checkingCompatibility, hasCheckedCompatibility: true, error: null);
+
+    final supported = _isOsVersionSupported();
+    if (!supported) {
+      state = state.copyWith(status: CreateStatus.unsupported);
+      return;
+    }
+
+    state = state.copyWith(status: CreateStatus.idle);
+  }
+
+  bool _isOsVersionSupported() {
+    try {
+      final version = Platform.operatingSystemVersion;
+
+      if (Platform.isAndroid) {
+        final match = RegExp(r'Android\s+(\d+)').firstMatch(version);
+        final major = int.tryParse(match?.group(1) ?? '');
+        if (major == null) {
+          return true;
+        }
+        return major >= 16;
+      }
+
+      if (Platform.isIOS) {
+        final match = RegExp(r'(\d+)(?:\.\d+)?').firstMatch(version);
+        final major = int.tryParse(match?.group(1) ?? '');
+        if (major == null) {
+          return true;
+        }
+        return major >= 26;
+      }
+
+      return true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  void addUrl(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || !trimmed.contains('reddit')) {
+      return;
+    }
+
+    if (state.urls.contains(trimmed)) {
+      return;
+    }
+
+    state = state.copyWith(urls: [...state.urls, trimmed]);
+  }
+
+  void removeUrl(int index) {
+    if (index < 0 || index >= state.urls.length) {
+      return;
+    }
+
+    final updated = [...state.urls]..removeAt(index);
+    state = state.copyWith(urls: updated);
+  }
+
+  void reorderUrls(int oldIndex, int newIndex) {
+    final updated = [...state.urls];
+
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    if (oldIndex < 0 || oldIndex >= updated.length || newIndex < 0 || newIndex >= updated.length) {
+      return;
+    }
+
+    final item = updated.removeAt(oldIndex);
+    updated.insert(newIndex, item);
+    state = state.copyWith(urls: updated);
+  }
+
+  Future<void> generatePodcast() async {
+    final urls = List<String>.from(state.urls);
+    if (urls.isEmpty || state.status == CreateStatus.unsupported) {
+      return;
+    }
+
     final episodeId = const Uuid().v4();
 
     try {
-      // 1. Compatibility check
-      state = const CreateState.checkingCompatibility();
+      state = state.copyWith(status: CreateStatus.scraping, error: null);
       final llm = _ref.read(llmServiceProvider);
       if (!await llm.isAvailable()) {
-        state = const CreateState.unsupported();
+        state = state.copyWith(
+          status: CreateStatus.failed,
+          error: 'On-device model is unavailable. Please verify your model setup and try again.',
+        );
         return;
       }
 
-      // 2. Scrape Reddit posts
-      state = const CreateState.scraping();
       final scraper = _ref.read(redditScraperProvider);
       final posts = await Future.wait(urls.map(scraper.fetchPost));
 
-      // 3. Phase 1 -- analysis
-      state = const CreateState.analyzing();
+      state = state.copyWith(status: CreateStatus.analyzing);
       final promptBuilder = _ref.read(llmPromptBuilderProvider);
       final analysisRaw = await llm.generateRaw(promptBuilder.buildAnalysisPrompt(posts));
       final analysis = jsonDecode(analysisRaw) as Map<String, dynamic>;
 
-      // 4. Phase 2 -- transcript
-      state = const CreateState.generatingTranscript();
+      state = state.copyWith(status: CreateStatus.generatingTranscript);
       final transcriptRaw =
           await llm.generateRaw(promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis));
       final segments = (jsonDecode(transcriptRaw) as List)
           .map((s) => TranscriptSegment.fromJson(s as Map<String, dynamic>))
           .toList();
 
-      // 5. Voice assignment
       final speakers = (analysis['speakers'] as List).map((s) => Speaker.fromJson(s as Map<String, dynamic>)).toList();
       final voiceMap = VoiceAssignment.assignVoices(speakers);
 
-      // 6. TTS synthesis
       final tts = _ref.read(ttsServiceProvider);
       final synthesized = <TranscriptSegment>[];
 
       for (int i = 0; i < segments.length; i++) {
-        state = CreateState.synthesizing(i / segments.length, segments[i].speakerId);
+        state = state.copyWith(
+          status: CreateStatus.synthesizing,
+          progress: i / segments.length,
+          currentSpeaker: segments[i].speakerId,
+        );
         final seg = segments[i];
         final audioPath = await tts.synthesizeSegment(
           segment: seg,
@@ -72,14 +160,10 @@ class CreateNotifier extends StateNotifier<CreateState> {
         ));
       }
 
-      // 7. Stitch audio
-      state = const CreateState.stitching();
+      state = state.copyWith(status: CreateStatus.stitching, progress: null, currentSpeaker: null);
       final stitcher = _ref.read(audioStitcherProvider);
       final finalAudioPath = await stitcher.stitch(segments: synthesized, episodeId: episodeId);
 
-      // 8. Persist episode.
-      // Drift Episode is immutable -- never use cascade (..field = value).
-      // All writes go through EpisodesCompanion with Value() wrappers.
       final db = _ref.read(databaseProvider);
       await db.upsertEpisode(EpisodesCompanion(
         episodeId: Value(episodeId),
@@ -94,37 +178,57 @@ class CreateNotifier extends StateNotifier<CreateState> {
       ));
 
       final episode = await db.episodeById(episodeId);
-      // ignore: prefer_const_constructors
-      state = CreateState.complete(episode: episode!);
+      state = state.copyWith(status: CreateStatus.complete, episode: episode);
     } catch (e) {
-      state = CreateState.failed(error: e.toString());
+      state = state.copyWith(status: CreateStatus.failed, error: e.toString());
     }
   }
 }
 
 class CreateState {
-  const CreateState._(this.status,
-      {this.progress, this.currentSpeaker, this.partialAudioPath, this.episode, this.error});
+  const CreateState._(
+    this.status, {
+    this.urls = const [],
+    this.progress,
+    this.currentSpeaker,
+    this.partialAudioPath,
+    this.episode,
+    this.error,
+    this.hasCheckedCompatibility = false,
+  });
 
   const CreateState.idle() : this._(CreateStatus.idle);
-  const CreateState.checkingCompatibility() : this._(CreateStatus.checkingCompatibility);
-  const CreateState.unsupported() : this._(CreateStatus.unsupported);
-  const CreateState.scraping() : this._(CreateStatus.scraping);
-  const CreateState.analyzing() : this._(CreateStatus.analyzing);
-  const CreateState.generatingTranscript() : this._(CreateStatus.generatingTranscript);
-  const CreateState.synthesizing(double p, String s)
-      : this._(CreateStatus.synthesizing, progress: p, currentSpeaker: s);
-  const CreateState.stitching() : this._(CreateStatus.stitching);
-  // ignore: prefer_const_constructors_in_immutables
-  CreateState.complete({required Episode episode}) : this._(CreateStatus.complete, episode: episode);
-  const CreateState.failed({required String error}) : this._(CreateStatus.failed, error: error);
 
   final CreateStatus status;
+  final List<String> urls;
   final double? progress;
   final String? currentSpeaker;
   final String? partialAudioPath;
   final Episode? episode;
   final String? error;
+  final bool hasCheckedCompatibility;
+
+  CreateState copyWith({
+    CreateStatus? status,
+    List<String>? urls,
+    double? progress,
+    String? currentSpeaker,
+    String? partialAudioPath,
+    Episode? episode,
+    String? error,
+    bool? hasCheckedCompatibility,
+  }) {
+    return CreateState._(
+      status ?? this.status,
+      urls: urls ?? this.urls,
+      progress: progress,
+      currentSpeaker: currentSpeaker,
+      partialAudioPath: partialAudioPath ?? this.partialAudioPath,
+      episode: episode ?? this.episode,
+      error: error,
+      hasCheckedCompatibility: hasCheckedCompatibility ?? this.hasCheckedCompatibility,
+    );
+  }
 }
 
 enum CreateStatus {
