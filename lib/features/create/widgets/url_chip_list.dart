@@ -12,7 +12,7 @@ class UrlChipList extends StatelessWidget {
   final ValueChanged<int> onRemove;
   final ReorderCallback onReorder;
 
-  String _displayUrl(String url) => url.replaceFirst(RegExp(r'^https?://(www\\.)?'), '');
+  String _displayUrl(String url) => url.replaceFirst(RegExp(r'^.*\.com/'), '');
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +24,18 @@ class UrlChipList extends StatelessWidget {
         padding: EdgeInsets.zero,
         buildDefaultDragHandles: false,
         clipBehavior: Clip.hardEdge,
+        proxyDecorator: (child, index, animation) {
+          return Material(
+            elevation: 0,
+            color: Colors.transparent,
+            child: child,
+          );
+        },
         itemCount: urls.length,
         onReorder: onReorder,
         itemBuilder: (context, i) => Container(
           key: ValueKey('${urls[i]}-$i'),
           height: 54,
-          margin: EdgeInsets.only(bottom: i == urls.length - 1 ? 0 : 8),
           child: Row(
             children: [
               Expanded(
