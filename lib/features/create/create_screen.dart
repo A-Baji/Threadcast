@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:threadcast/shared/widgets/unsupported_device_screen.dart';
+
 import 'create_provider.dart';
 
 class CreateScreen extends ConsumerWidget {
@@ -34,14 +36,7 @@ class CreateScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             if (state.status == CreateStatus.synthesizing) LinearProgressIndicator(value: state.progress),
-            if (state.status == CreateStatus.unsupported)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Threadcast requires Android 16 or iOS 26 or later.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            if (state.status == CreateStatus.unsupported) const Expanded(child: UnsupportedDeviceScreen()),
             Text('Status: ${state.status.name}'),
             if (state.error != null) Text('Error: ${state.error}', style: const TextStyle(color: Colors.red)),
           ],
