@@ -19,7 +19,7 @@ Threadcast is a Flutter mobile app (iOS + Android) that converts Reddit posts fr
 | State management | Riverpod |
 | Navigation | go_router |
 | Android LLM | Gemini Nano via Android AICore (ML Kit / Google AI Edge) |
-| iOS LLM | Apple Foundation Models framework (iOS 26+) |
+| iOS LLM | Apple Foundation Models framework (iOS 18+) |
 | TTS engine | Kokoro-82M via sherpa_onnx Flutter plugin |
 | Reddit API | OAuth 2.0, script-type app, free tier (100 QPM) |
 | HTTP client | dio |
@@ -35,7 +35,7 @@ Threadcast is a Flutter mobile app (iOS + Android) that converts Reddit posts fr
 ## Minimum OS Requirements (Phase 1)
 
 - **Android 16+** (API level 36) — required for guaranteed AICore / Gemini Nano availability
-- **iOS 26+** — required for Foundation Models framework
+- **iOS 18+** — required for Foundation Models framework
 
 Devices below these versions see a "coming soon" screen with an explanation. No generation functionality is exposed on unsupported devices. The hybrid fallback (private on-device model for older OS) is a planned Phase 2 feature — do not implement it now, but architect the LLM abstraction layer to accommodate it cleanly.
 
@@ -498,7 +498,7 @@ import FoundationModels
 // (Signing & Capabilities → + Capability → Foundation Models) or this import
 // will compile but all calls will fail at runtime.
 
-@available(iOS 26.0, *)
+@available(iOS 18.0, *)
 class FoundationModelService {
 
     func isAvailable() -> Bool {
@@ -562,9 +562,9 @@ class LlmPlugin: NSObject, FlutterPlugin {
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard #available(iOS 26.0, *) else {
+        guard #available(iOS 18.0, *) else {
             result(FlutterError(code: "MODEL_UNAVAILABLE",
-                               message: "iOS 26+ required", details: nil))
+                               message: "iOS 18+ required", details: nil))
             return
         }
 
@@ -1363,7 +1363,7 @@ class CreateNotifier extends _$CreateNotifier {
 
 ### 5. Unsupported Device Screen (widget, not full screen)
 - Shown inline in Create screen when OS model unavailable
-- Message: "Threadcast requires Android 16 / iOS 26 or later to generate podcasts. Support for older devices is coming soon."
+- Message: "Threadcast requires Android 16 / iOS 18 or later to generate podcasts. Support for older devices is coming soon."
 - No action button — informational only
 
 ---
@@ -1401,7 +1401,7 @@ final router = GoRouter(
 - The LLM + TTS pipeline will take several minutes. iOS aggressively suspends background tasks.
 - Keep the screen on during generation using `WakeLock` package.
 - Show a persistent banner: "Keep Threadcast open while generating."
-- **For background fallback**, use `BGContinuedProcessingTaskRequest` (iOS 26+), NOT `BGProcessingTask`. The standard `BGProcessingTask` is limited to ~5 minutes, which is insufficient for a full pipeline run. `BGContinuedProcessingTaskRequest` allows up to **one hour** of background runtime but requires an explicit user-initiated trigger — it cannot be scheduled opportunistically. Register it when the user taps "Generate" so the OS treats it as a user-requested long-running task.
+- **For background fallback**, use `BGContinuedProcessingTaskRequest` (iOS 18+), NOT `BGProcessingTask`. The standard `BGProcessingTask` is limited to ~5 minutes, which is insufficient for a full pipeline run. `BGContinuedProcessingTaskRequest` allows up to **one hour** of background runtime but requires an explicit user-initiated trigger — it cannot be scheduled opportunistically. Register it when the user taps "Generate" so the OS treats it as a user-requested long-running task.
 
 ```swift
 // Register in AppDelegate or when generation begins

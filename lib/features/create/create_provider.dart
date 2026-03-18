@@ -56,7 +56,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
         // iOS version strings usually start with the version: "17.4..."
         final match = RegExp(r'^(\d+)').firstMatch(versionString);
         final major = int.tryParse(match?.group(1) ?? '');
-        return (major ?? 0) >= 18; // Note: iOS 26 doesn't exist yet; adjusted to a real version
+        return (major ?? 0) >= 18;
       }
 
       return true;
@@ -133,81 +133,6 @@ class CreateNotifier extends StateNotifier<CreateState> {
       state = state.copyWith(status: CreateStatus.generatingTranscript);
       final transcriptRaw =
           await llm.generateRaw(promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis));
-      // final transcriptRaw = [
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "Alright, so, look—I’ll be the first to admit it. I’m an old fart. I’ve got a teenage daughter who I love to absolute pieces, but man, I am struggling to see eye to eye with her and my wife on this one. We’re out here in the rural Midwest, right? Meat is just… it’s what we do. Bacon for breakfast isn’t just a preference; it’s pretty much a given. It’s the law of the land.",
-      //     "delivery": {"pace": "normal", "emotion": "calm", "pause_before_ms": 0, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "But then, earlier this year, my fourteen-year-old decided she was going vegan. And honestly? I was all for it. I jumped onto her support team with real enthusiasm. I wasn’t the dad rolling my eyes. We learned how to substitute ingredients together, we cooked new things, we tried the weirdest stuff you can imagine. I even adjusted our whole family budget to handle those—let’s be honest—pretty expensive vegan substitutes for her. I wanted her to feel supported, you know?",
-      //     "delivery": {"pace": "normal", "emotion": "excited", "pause_before_ms": 500, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "None of this was a problem. Not a lick of it. Until recently. I was in the kitchen, just doing my thing, cooking up some bacon in a pan. Standard morning. When I was done, I gave it a quick rinse in the sink and went to load it into the dishwasher. And that’s when it happened. She just… exploded. Just total anger. Now, she’s a teenager, so I’m not too fussed about the explosion itself—I know she doesn’t really mean it—but she shouts at me that that was HER pan. Her special pan for vegan food.",
-      //     "delivery": {"pace": "normal", "emotion": "frustrated", "pause_before_ms": 800, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "speaker_3",
-      //     "text":
-      //         "Wait, her pan? Is she the one paying the mortgage or the grocery bill? Because last I checked, that's not how a household works.",
-      //     "delivery": {"pace": "fast", "emotion": "sarcastic", "pause_before_ms": 0, "overlap_previous": true}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "Exactly! I was completely floored. I told her, ‘Kiddo, this here is a family pan. This pan is literally older than you are. It’s not YOUR pan.’ But, look, I didn’t want her to feel weird about her food. I didn’t want it to be a whole thing. So I caved. I said sure. I went online and ordered her a few colored pans that are strictly for her vegan cooking. The colors are great because they help a guy like me remember, ‘Hey, don’t touch these unless you’re making her food.’ Easy, right?",
-      //     "delivery": {"pace": "normal", "emotion": "calm", "pause_before_ms": 400, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "speaker_2",
-      //     "text":
-      //         "You'd think so. But let me guess—the special colored pans didn't exactly solve the 'crisis' in the kitchen, did they?",
-      //     "delivery": {"pace": "normal", "emotion": "sarcastic", "pause_before_ms": 200, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "Not even close. Apparently, now the entire dishwasher is—and I’m using her words here—'contaminated' with animal products. And it didn’t stop there. Now she says the fridge has 'bacon grease fingers' on it because I eat bacon and then, God forbid, I touch the fridge handle. Now, I wash my hands! I’m not running around wiping grease on the appliances like a barbarian, but just the idea of it is enough to upset her.",
-      //     "delivery": {"pace": "fast", "emotion": "frustrated", "pause_before_ms": 500, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "So now she’s asked me and her mom to completely stop eating meat at home. Just… ban it from the house entirely. She says she’s fine with the cheese and the butter being in the fridge, but it’s specifically the meat that makes her feel sick. And frankly? I’m on team 'hell no.'",
-      //     "delivery": {"pace": "normal", "emotion": "frustrated", "pause_before_ms": 600, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "speaker_2",
-      //     "text":
-      //         "I mean, N-T-A for sure. But if she’s really worried about the 'tainted' dishwasher, why not just get her a special sponge? Let her wash her own dishes by hand so they never have to touch the communal soap. It’s a great way to see how serious she actually is about the residue when she has to do the scrubbing herself.",
-      //     "delivery": {"pace": "normal", "emotion": "calm", "pause_before_ms": 300, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "speaker_3",
-      //     "text":
-      //         "She needs a serious education on how dishwashers work. It’s soap and high-heat water; nothing is surviving that. Honestly, she’s being a bit of a brat. If I were you, I’d tally up the cost of those expensive substitutes and all the special gear she 'needs' to be self-sufficient and show her the bill.",
-      //     "delivery": {"pace": "fast", "emotion": "frustrated", "pause_before_ms": 200, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "speaker_2",
-      //     "text":
-      //         "And look at the bright side—if you buy her all her own plates, soap, and sponges now, that’s just less stuff she has to buy when she eventually moves out. It’s a head start on adulting!",
-      //     "delivery": {"pace": "normal", "emotion": "calm", "pause_before_ms": 150, "overlap_previous": false}
-      //   },
-      //   {
-      //     "speaker_id": "op",
-      //     "text":
-      //         "See, that’s where I’m at. But my wife… she’s much more amenable. She’s strongly pushing me to actually consider the request. Her reasoning is that both our parents live really close by, so we could just go to their houses whenever we want to eat meat. She doesn’t want our daughter to feel 'uncomfortable' in her own kitchen. But man, I’m sorry… I love her, but she needs to learn to live side-by-side with people who are different. I’m not going to stop eating bacon in my own house.",
-      //     "delivery": {"pace": "slow", "emotion": "frustrated", "pause_before_ms": 800, "overlap_previous": false}
-      //   }
-      // ];
-
       final segments = (jsonDecode(transcriptRaw) as List)
           .map((s) => TranscriptSegment.fromJson(s as Map<String, dynamic>))
           .toList();
