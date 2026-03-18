@@ -6,7 +6,6 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:threadcast/main.dart';
 
 void main() {
@@ -20,6 +19,6 @@ void main() {
     // Verify that the Create screen loads with expected elements
     expect(find.text('Create Podcast'), findsOneWidget);
     expect(find.text('Reddit URL'), findsOneWidget);
-    expect(find.text('Generate (Mock)'), findsOneWidget);
+    expect(find.text('Generate'), findsOneWidget);
   });
 }
