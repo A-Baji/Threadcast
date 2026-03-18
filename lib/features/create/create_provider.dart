@@ -1,6 +1,6 @@
-﻿import 'dart:convert';
-import 'dart:io';
+﻿import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +27,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
     state = state.copyWith(status: CreateStatus.checkingCompatibility, hasCheckedCompatibility: true, error: null);
 
-    final supported = _isOsVersionSupported();
+    final supported = await _isOsVersionSupported();
     if (!supported) {
       state = state.copyWith(status: CreateStatus.unsupported);
       return;
@@ -36,27 +36,19 @@ class CreateNotifier extends StateNotifier<CreateState> {
     state = state.copyWith(status: CreateStatus.idle);
   }
 
-  bool _isOsVersionSupported() {
+  Future<bool> _isOsVersionSupported() async {
     try {
-      final versionString = Platform.operatingSystemVersion;
+      final deviceInfo = DeviceInfoPlugin();
 
       if (Platform.isAndroid) {
-        // Logic: Build IDs starting with 'A' are Android 15.
-        // Android 16 (Baklava) builds typically start with 'B'.
-        if (versionString.startsWith('B')) return true; // Android 16+
-        if (versionString.startsWith('A')) return false; // Android 15
-
-        // Fallback: If it actually contains "Android X"
-        final match = RegExp(r'Android\s+(\d+)').firstMatch(versionString);
-        final major = int.tryParse(match?.group(1) ?? '');
-        return (major ?? 0) >= 16;
+        final androidInfo = await deviceInfo.androidInfo;
+        return androidInfo.version.sdkInt >= 36;
       }
 
       if (Platform.isIOS) {
-        // iOS version strings usually start with the version: "17.4..."
-        final match = RegExp(r'^(\d+)').firstMatch(versionString);
-        final major = int.tryParse(match?.group(1) ?? '');
-        return (major ?? 0) >= 18;
+        final iosInfo = await deviceInfo.iosInfo;
+        final majorVersion = int.tryParse(iosInfo.systemVersion.split('.').first);
+        return (majorVersion ?? 0) >= 18;
       }
 
       return true;
