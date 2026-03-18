@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -8,37 +7,61 @@ class TtsModelExtractor {
   static const _currentVersion = '1';
   static const _assetRoot = 'assets/tts_models/';
 
-  static Future<String> ensureExtracted() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final modelDir = Directory('${docsDir.path}/tts_models');
-    final versionFile = File('${modelDir.path}/.version');
+  static Future<String>? _ensureExtractedFuture;
+  static String? _cachedModelDirPath;
 
-    if (await versionFile.exists() && await versionFile.readAsString() == _currentVersion) {
-      return modelDir.path;
+  static Future<String> ensureExtracted() {
+    // 1. Check in-memory cache (exists only during this app session)
+    if (_cachedModelDirPath != null) {
+      return Future.value(_cachedModelDirPath!);
     }
 
-    if (await modelDir.exists()) {
-      await modelDir.delete(recursive: true);
-    }
-    await modelDir.create(recursive: true);
+    // Use a future variable to prevent multiple simultaneous extraction attempts
+    return _ensureExtractedFuture ??= _extractIfNeeded();
+  }
 
-    final manifestJson = await rootBundle.loadString('AssetManifest.json');
-    final manifest = json.decode(manifestJson) as Map<String, dynamic>;
-    final assets = manifest.keys.where((key) => key.startsWith(_assetRoot)).toList()..sort();
+  static Future<String> _extractIfNeeded() async {
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      final modelDir = Directory('${docsDir.path}/tts_models');
+      final versionFile = File('${modelDir.path}/.version');
 
-    for (final assetPath in assets) {
-      final relativePath = assetPath.replaceFirst(_assetRoot, '');
-      if (relativePath.isEmpty) {
-        continue;
+      // 2. Check Disk Cache (persists after app restart)
+      if (await versionFile.exists()) {
+        final existingVersion = (await versionFile.readAsString()).trim();
+        if (existingVersion == _currentVersion) {
+          _cachedModelDirPath = modelDir.path;
+          return modelDir.path;
+        }
       }
 
-      final outFile = File('${modelDir.path}/$relativePath');
-      await outFile.parent.create(recursive: true);
-      final data = await rootBundle.load(assetPath);
-      await outFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
-    }
+      // 3. Actual Extraction (only runs if disk cache is missing or outdated)
+      if (await modelDir.exists()) {
+        await modelDir.delete(recursive: true);
+      }
+      await modelDir.create(recursive: true);
 
-    await versionFile.writeAsString(_currentVersion, flush: true);
-    return modelDir.path;
+      final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final assets = assetManifest.listAssets().where((key) => key.startsWith(_assetRoot)).toList()..sort();
+
+      for (final assetPath in assets) {
+        final relativePath = assetPath.replaceFirst(_assetRoot, '');
+        if (relativePath.isEmpty) continue;
+
+        final outFile = File('${modelDir.path}/$relativePath');
+        await outFile.parent.create(recursive: true);
+
+        final data = await rootBundle.load(assetPath);
+        await outFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
+      }
+
+      await versionFile.writeAsString(_currentVersion, flush: true);
+
+      _cachedModelDirPath = modelDir.path;
+      return modelDir.path;
+    } catch (e) {
+      _ensureExtractedFuture = null; // Allow retry on failure
+      rethrow;
+    }
   }
 }

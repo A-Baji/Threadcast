@@ -15,8 +15,6 @@ class TtsService {
 
   Future<void> initialize() async {
     _modelDirPath ??= await TtsModelExtractor.ensureExtracted();
-    final espeakFiles = await Directory('$_modelDirPath/espeak-ng-data').list(recursive: true).length;
-    print('Extracted $espeakFiles espeak files');
   }
 
   /// Synthesizes a single transcript segment.
