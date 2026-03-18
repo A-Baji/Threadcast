@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -179,6 +180,10 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
       final episode = await db.episodeById(episodeId);
       state = state.copyWith(status: CreateStatus.complete, episode: episode);
+    } on PlatformException catch (e) {
+      final message = e.message?.trim();
+      final details = message == null || message.isEmpty ? e.code : '${e.code}: $message';
+      state = state.copyWith(status: CreateStatus.failed, error: details);
     } catch (e) {
       state = state.copyWith(status: CreateStatus.failed, error: e.toString());
     }
