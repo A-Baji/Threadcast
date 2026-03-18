@@ -42,3 +42,12 @@ android {
 flutter {
     source = "../.."
 }
+
+
+dependencies {
+    // ML Kit GenAI (Gemini Nano) library
+    implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")
+
+    // Required for the 'suspend' functions and Coroutine scopes used in LlmPlugin.kt
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+}
