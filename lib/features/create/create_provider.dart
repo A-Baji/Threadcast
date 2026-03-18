@@ -133,6 +133,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
       final voiceMap = VoiceAssignment.assignVoices(speakers);
 
       final tts = _ref.read(ttsServiceProvider);
+      await tts.initialize();
       final synthesized = <TranscriptSegment>[];
 
       for (int i = 0; i < segments.length; i++) {

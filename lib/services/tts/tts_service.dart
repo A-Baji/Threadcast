@@ -1,13 +1,22 @@
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
+
 import '../llm/models/transcript.dart';
+import 'tts_model_extractor.dart';
 
 /// Stub TTS service for compilation and local testing.
 ///
-/// This implementation creates empty WAV files so the pipeline can run end-to-end.
+/// This implementation still creates empty WAV files so the pipeline can run
+/// end-to-end, but it now resolves the extracted model directory first so the
+/// eventual Sherpa-ONNX integration can use real filesystem paths.
 class TtsService {
+  String? _modelDirPath;
+
   Future<void> initialize() async {
-    // No-op for stub implementation.
+    _modelDirPath ??= await TtsModelExtractor.ensureExtracted();
+    final espeakFiles = await Directory('$_modelDirPath/espeak-ng-data').list(recursive: true).length;
+    print('Extracted $espeakFiles espeak files');
   }
 
   /// Synthesizes a single transcript segment.
@@ -18,13 +27,30 @@ class TtsService {
     required String episodeId,
     required int segmentIndex,
   }) async {
-    // Create an empty WAV file placeholder.
+    await initialize();
+
     final outputPath = await _segmentPath(episodeId, segmentIndex);
     final outFile = File(outputPath);
     await outFile.create(recursive: true);
     await outFile.writeAsBytes([]);
-    return outputPath;
+    return outFile.path;
   }
+
+  String get modelDirPath {
+    final path = _modelDirPath;
+    if (path == null) {
+      throw StateError('TtsService.initialize() must be called before accessing modelDirPath.');
+    }
+    return path;
+  }
+
+  String get modelPath => '$modelDirPath/kokoro-v0_19.onnx';
+
+  String get voicesPath => '$modelDirPath/voices.bin';
+
+  String get tokensPath => '$modelDirPath/tokens.txt';
+
+  String get espeakDataPath => '$modelDirPath/espeak-ng-data';
 
   Future<String> _segmentPath(String episodeId, int index) async {
     final dir = await getTemporaryDirectory();
