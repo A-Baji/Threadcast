@@ -1,6 +1,6 @@
-﻿import 'dart:convert';
-import 'dart:io';
+﻿import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +27,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
     state = state.copyWith(status: CreateStatus.checkingCompatibility, hasCheckedCompatibility: true, error: null);
 
-    final supported = _isOsVersionSupported();
+    final supported = await _isOsVersionSupported();
     if (!supported) {
       state = state.copyWith(status: CreateStatus.unsupported);
       return;
@@ -36,31 +36,24 @@ class CreateNotifier extends StateNotifier<CreateState> {
     state = state.copyWith(status: CreateStatus.idle);
   }
 
-  bool _isOsVersionSupported() {
+  Future<bool> _isOsVersionSupported() async {
     try {
-      final version = Platform.operatingSystemVersion;
+      final deviceInfo = DeviceInfoPlugin();
 
       if (Platform.isAndroid) {
-        final match = RegExp(r'Android\s+(\d+)').firstMatch(version);
-        final major = int.tryParse(match?.group(1) ?? '');
-        if (major == null) {
-          return true;
-        }
-        return major >= 16;
+        final androidInfo = await deviceInfo.androidInfo;
+        return androidInfo.version.sdkInt >= 36;
       }
 
       if (Platform.isIOS) {
-        final match = RegExp(r'(\d+)(?:\.\d+)?').firstMatch(version);
-        final major = int.tryParse(match?.group(1) ?? '');
-        if (major == null) {
-          return true;
-        }
-        return major >= 26;
+        final iosInfo = await deviceInfo.iosInfo;
+        final majorVersion = int.tryParse(iosInfo.systemVersion.split('.').first);
+        return (majorVersion ?? 0) >= 18;
       }
 
       return true;
     } catch (_) {
-      return true;
+      return true; // Default to supported on error
     }
   }
 
@@ -140,6 +133,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
       final voiceMap = VoiceAssignment.assignVoices(speakers);
 
       final tts = _ref.read(ttsServiceProvider);
+      await tts.initialize();
       final synthesized = <TranscriptSegment>[];
 
       for (int i = 0; i < segments.length; i++) {

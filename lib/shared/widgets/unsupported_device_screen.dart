@@ -20,7 +20,7 @@ class UnsupportedDeviceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Threadcast requires Android 16 or iOS 26 to generate podcasts. Support for older devices is coming soon.',
+              'Threadcast requires Android 16 or iOS 18 to generate podcasts. Support for older devices is coming soon.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),

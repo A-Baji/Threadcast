@@ -43,7 +43,7 @@ Player / Library / Export (MP3 + share sheet)
 | State management | Riverpod | `StateNotifierProvider` throughout |
 | Navigation | go_router | Deep link support for OAuth callback |
 | Android LLM | ML Kit GenAI Prompt API | `com.google.mlkit:genai-prompt:1.0.0-beta1` — Gemini Nano via AICore |
-| iOS LLM | Foundation Models | `LanguageModelSession` — iOS 26+ only |
+| iOS LLM | Foundation Models | `LanguageModelSession` — iOS 18+ only |
 | LLM bridge | Flutter MethodChannel | `com.threadcast.app/llm` |
 | TTS engine | Sherpa-ONNX + Kokoro-82M | 82M parameter model, ~330 MB, runs on-device |
 | Audio playback | just_audio | Position stream for transcript sync |
@@ -59,7 +59,7 @@ Player / Library / Export (MP3 + share sheet)
 | Platform | Minimum | Reason |
 |---|---|---|
 | Android | **API 36 (Android 16)** | Required for guaranteed AICore / Gemini Nano availability |
-| iOS | **iOS 26** | Required for Foundation Models framework |
+| iOS | **iOS 18** | Required for Foundation Models framework |
 
 Devices below these versions see an informational "coming soon" screen. Phase 2 will add a private model fallback for older devices.
 
