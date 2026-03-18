@@ -3,10 +3,16 @@ package com.threadcast.app.llm
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
-
     private lateinit var channel: MethodChannel
     private val service = GeminiNanoService()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -49,9 +55,17 @@ class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                             result.error("CANCELLED", "Generation cancelled", null)
                         }
                     } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            result.error("GENERATION_FAILED", e.message, null)
+                        val code = when {
+                            e.message?.contains("BACKGROUND", ignoreCase = true) == true -> "BACKGROUND_BLOCKED"
+                            e.message?.contains("MODEL_UNAVAILABLE", ignoreCase = true) == true -> "MODEL_UNAVAILABLE"
+                            e.message?.contains("CONTEXT", ignoreCase = true) == true -> "CONTEXT_TOO_LONG"
+                            else -> "GENERATION_FAILED"
                         }
+                        withContext(Dispatchers.Main) {
+                            result.error(code, e.message, null)
+                        }
+                    } finally {
+                        activeJob = null
                     }
                 }
             }
