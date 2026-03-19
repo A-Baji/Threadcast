@@ -19,7 +19,7 @@ class Speaker {
   final String? redditUsername;
   final String role; // "main_speaker" | "commenter"
   final String personalityNotes;
-  final String voiceGender; // "male" | "female" | "neutral"
+  final String voiceGender; // "male" | "female"
   final String assignedVoice; // Set during voice assignment (Kokoro voice name)
 
   Speaker({

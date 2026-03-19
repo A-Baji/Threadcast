@@ -4,12 +4,10 @@ class VoiceAssignment {
   // Kokoro built-in voices
   static const _maleVoices = ['am_fenrir', 'am_michael', 'am_puck'];
   static const _femaleVoices = ['af_bella', 'af_heart', 'af_nicole'];
-  static const _neutralVoices = ['am_fenrir', 'af_bella'];
 
   static final _roleVoices = {
     'main_speaker_male': 'am_fenrir', // C+ — best available male
     'main_speaker_female': 'af_bella', // A- — best available female
-    'main_speaker_neutral': 'am_fenrir',
   };
 
   static Map<String, String> assignVoices(List<Speaker> speakers) {
@@ -27,11 +25,7 @@ class VoiceAssignment {
     // Assign distinct voices to commenters
     final commenters = speakers.where((s) => s.role == 'commenter').toList();
     for (final speaker in commenters) {
-      final pool = speaker.voiceGender == 'female'
-          ? _femaleVoices
-          : speaker.voiceGender == 'male'
-              ? _maleVoices
-              : _neutralVoices;
+      final pool = speaker.voiceGender == 'female' ? _femaleVoices : _maleVoices;
 
       final available = pool.where((v) => !usedVoices.contains(v)).toList();
       final voice = available.isNotEmpty ? available.first : pool.first;

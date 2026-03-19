@@ -51,6 +51,7 @@ class TtsService {
       'af_alloy': 0,
       'af_aoede': 1,
       'af_bella': 2,
+      'af_heart': 3,
       'af_jessica': 4,
       'af_kore': 5,
       'af_nicole': 6,
