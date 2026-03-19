@@ -24,8 +24,7 @@ dependencies:
   flutter_secure_storage: ^10.0.0
 
   # TTS
-  sherpa_onnx: ^1.12.0
-
+  sherpa_onnx: ^1.12.29
   # Audio playback
   just_audio: ^0.10.5
   # ffmpeg_kit_flutter_new is the original author's recommended community fork.
