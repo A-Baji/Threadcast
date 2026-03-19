@@ -6,11 +6,13 @@ import com.google.mlkit.genai.prompt.generateContentRequest
 import com.google.mlkit.genai.prompt.TextPart
 
 class GeminiNanoService {
-    private val generativeModel: GenerativeModel = Generation.getClient()
+    private val generativeModel: GenerativeModel by lazy { Generation.getClient() }
 
     suspend fun checkStatus(): Any? = generativeModel.checkStatus()
 
-    suspend fun isAvailable(): Boolean = matchesStatus(checkStatus(), statusAvailable)
+    suspend fun isAvailable(): Boolean = runCatching {
+        matchesStatus(checkStatus(), statusAvailable)
+    }.getOrDefault(false)
 
     suspend fun generateTranscript(prompt: String): String {
         val status = checkStatus()

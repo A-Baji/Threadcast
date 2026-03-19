@@ -27,9 +27,25 @@ class RedditPost {
     Map<String, dynamic> postListing,
     Map<String, dynamic> commentsListing,
   ) {
-    final postData = Map<String, dynamic>.from(
-      ((postListing['data'] as Map<String, dynamic>)['children'] as List).first['data'] as Map,
-    );
+    // 1. Safely extract the data with null-aware operators
+    final data = postListing['data'] as Map<String, dynamic>?;
+    final children = data?['children'] as List<dynamic>?;
+
+    // 2. Check if the list is empty or null before accessing .first
+    if (children == null || children.isEmpty) {
+      throw const FormatException('Malformed Reddit API response: No posts found.');
+    }
+
+    // 3. Extract the first item safely
+    final firstChild = children.first as Map<dynamic, dynamic>?;
+    final rawPostData = firstChild?['data'] as Map<dynamic, dynamic>?;
+
+    if (rawPostData == null) {
+      throw const FormatException('Malformed Reddit API response: Post data is missing.');
+    }
+
+    // 4. Finally, create your strongly-typed map
+    final postData = Map<String, dynamic>.from(rawPostData);
 
     final commentChildren = ((commentsListing['data'] as Map<String, dynamic>)['children'] as List?) ?? const [];
     final comments = commentChildren

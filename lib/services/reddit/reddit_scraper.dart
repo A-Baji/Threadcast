@@ -39,11 +39,13 @@ class RedditScraper {
           'raw_json': 1,
         },
       );
-      if (response.statusCode == 429) throw Exception(ThreadcastError.redditRateLimited);
 
       // Both endpoints return a 2-element array: [postData, commentsData]
       return RedditPost.fromJson(response.data[0], response.data[1]);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw Exception(ThreadcastError.redditRateLimited);
+      }
       throw Exception('${ThreadcastError.generationFailed}: ${e.message}');
     }
   }
