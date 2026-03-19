@@ -164,11 +164,7 @@ void main() {
       ];
 
       for (final url in invalidUrls) {
-        expect(
-          () => scraper.fetchPost(url),
-          throwsA(isA<FormatException>()),
-          reason: 'Expected FormatException for: $url',
-        );
+        expectLater(scraper.fetchPost(url), throwsA(isA<FormatException>()));
       }
     });
   });

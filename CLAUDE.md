@@ -115,7 +115,7 @@ threadcast/
 │           └── app_theme.dart
 ├── assets/
 │   └── tts_models/                    # Kokoro ONNX model + voicepack files
-│       ├── kokoro-v0_19.onnx
+│       ├── model.onnx
 │       ├── voices.bin
 │       └── espeak-ng-data/            # G2P data directory
 └── pubspec.yaml
@@ -638,14 +638,14 @@ Analyze the post and comments and return a JSON object with the following struct
       "reddit_username": "{post_author}",
       "role": "main_speaker",
       "personality_notes": "How they speak — e.g. anxious and self-deprecating, uses run-on sentences, lots of qualifiers",
-      "voice_gender": "male" | "female" | "neutral"
+      "voice_gender": "male" | "female"
     },
     {
       "id": "speaker_2",
       "reddit_username": "commenter_username OR 'composite' if multiple merged",
       "role": "commenter",
       "personality_notes": "...",
-      "voice_gender": "male" | "female" | "neutral",
+      "voice_gender": "male" | "female",
       "merged_usernames": []   // List of usernames merged into this composite speaker, empty if single
     }
     // Include only commenters worth including in the podcast
@@ -802,7 +802,7 @@ class Speaker {
   final String? redditUsername;
   final String role;        // "main_speaker" | "commenter"
   final String personalityNotes;
-  final String voiceGender; // "male" | "female" | "neutral"
+  final String voiceGender; // "male" | "female"
   final String assignedVoice; // Set during voice assignment (Kokoro voice name)
 }
 
@@ -841,7 +841,7 @@ flutter:
 ```
 
 Model files to bundle (download from https://github.com/k2-fsa/sherpa-onnx/releases):
-- `kokoro-v0_19.onnx` (~82MB)
+- `model.onnx` (~82MB)
 - `voices.bin` (voice embeddings)
 - `espeak-ng-data/` directory (G2P phoneme data — required for correct pronunciation)
 
@@ -859,12 +859,10 @@ class VoiceAssignment {
   // Kokoro built-in voices
   static const _maleVoices = ['am_adam', 'am_michael', 'am_fenrir'];
   static const _femaleVoices = ['af_sarah', 'af_bella', 'af_nicole'];
-  static const _neutralVoices = ['am_adam', 'af_sarah']; // Fallback
 
   static final _roleVoices = {
     'main_speaker_male': 'am_adam',
     'main_speaker_female': 'af_sarah',
-    'main_speaker_neutral': 'am_adam',
   };
 
   static Map<String, String> assignVoices(List<Speaker> speakers) {
@@ -884,9 +882,7 @@ class VoiceAssignment {
     for (final speaker in commenters) {
       final pool = speaker.voiceGender == 'female'
           ? _femaleVoices
-          : speaker.voiceGender == 'male'
-              ? _maleVoices
-              : _neutralVoices;
+          : _maleVoices;
 
       final available = pool.where((v) => !usedVoices.contains(v)).toList();
       final voice = available.isNotEmpty ? available.first : pool.first;
@@ -915,7 +911,7 @@ class TtsService {
     final modelDir = await _getModelDir();
     _tts = SherpaOnnxTts(
       model: KokoroModel(
-        model: '$modelDir/kokoro-v0_19.onnx',
+        model: '$modelDir/model.onnx',
         voices: '$modelDir/voices.bin',
         tokens: '$modelDir/tokens.txt',
         dataDir: '$modelDir/espeak-ng-data',

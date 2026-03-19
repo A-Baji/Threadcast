@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TtsModelExtractor {
-  static const _currentVersion = '1';
+  static const _currentVersion = '3';
   static const _assetRoot = 'assets/tts_models/';
 
   static Future<String>? _ensureExtractedFuture;

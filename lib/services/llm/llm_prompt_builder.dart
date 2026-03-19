@@ -30,14 +30,14 @@ Analyze the post and comments and return a JSON object with the following struct
       "reddit_username": "{post_author}",
       "role": "main_speaker",
       "personality_notes": "How they speak — e.g. anxious and self-deprecating, uses run-on sentences, lots of qualifiers",
-      "voice_gender": "male" | "female" | "neutral"
+      "voice_gender": "male" | "female"
     },
     {
       "id": "speaker_2",
       "reddit_username": "commenter_username OR 'composite' if multiple merged",
       "role": "commenter",
       "personality_notes": "...",
-      "voice_gender": "male" | "female" | "neutral",
+      "voice_gender": "male" | "female",
       "merged_usernames": []   // List of usernames merged into this composite speaker, empty if single
     }
     // Include only commenters worth including in the podcast

@@ -83,7 +83,7 @@ class LlmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         activeJob?.cancel()
-        scope.cancel()
         service.release()
+        scope.cancel()
     }
 }
