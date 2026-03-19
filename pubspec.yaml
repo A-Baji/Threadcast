@@ -60,9 +60,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/tts_models/kokoro-v0_19.onnx
+    - assets/tts_models/model.onnx
     - assets/tts_models/voices.bin
     - assets/tts_models/tokens.txt
+    - assets/tts_models/lexicon-us-en.txt
     - assets/tts_models/espeak-ng-data/
     - assets/tts_models/espeak-ng-data/lang/
     - assets/tts_models/espeak-ng-data/lang/aav/

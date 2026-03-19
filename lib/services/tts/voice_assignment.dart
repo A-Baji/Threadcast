@@ -2,14 +2,14 @@ import '../llm/models/transcript.dart';
 
 class VoiceAssignment {
   // Kokoro built-in voices
-  static const _maleVoices = ['am_adam', 'am_michael', 'am_fenrir'];
-  static const _femaleVoices = ['af_sarah', 'af_bella', 'af_nicole'];
-  static const _neutralVoices = ['am_adam', 'af_sarah']; // Fallback
+  static const _maleVoices = ['am_fenrir', 'am_michael', 'am_puck'];
+  static const _femaleVoices = ['af_bella', 'af_heart', 'af_nicole'];
+  static const _neutralVoices = ['am_fenrir', 'af_bella'];
 
   static final _roleVoices = {
-    'main_speaker_male': 'am_adam',
-    'main_speaker_female': 'af_sarah',
-    'main_speaker_neutral': 'am_adam',
+    'main_speaker_male': 'am_fenrir', // C+ — best available male
+    'main_speaker_female': 'af_bella', // A- — best available female
+    'main_speaker_neutral': 'am_fenrir',
   };
 
   static Map<String, String> assignVoices(List<Speaker> speakers) {

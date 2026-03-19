@@ -48,6 +48,7 @@ android/build/reports/
 # Never commit these; they are installed locally by the setup script.
 assets/tts_models/
 kokoro-en-v0_19/
+kokoro*/
 
 # Script backup files — created by migrate-dependencies.ps1 and
 # setup-threadcast-env.ps1 as safety copies before overwriting Dart files.

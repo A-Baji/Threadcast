@@ -115,7 +115,7 @@ threadcast/
 │           └── app_theme.dart
 ├── assets/
 │   └── tts_models/                    # Kokoro ONNX model + voicepack files
-│       ├── kokoro-v0_19.onnx
+│       ├── model.onnx
 │       ├── voices.bin
 │       └── espeak-ng-data/            # G2P data directory
 └── pubspec.yaml
@@ -841,7 +841,7 @@ flutter:
 ```
 
 Model files to bundle (download from https://github.com/k2-fsa/sherpa-onnx/releases):
-- `kokoro-v0_19.onnx` (~82MB)
+- `model.onnx` (~82MB)
 - `voices.bin` (voice embeddings)
 - `espeak-ng-data/` directory (G2P phoneme data — required for correct pronunciation)
 
@@ -915,7 +915,7 @@ class TtsService {
     final modelDir = await _getModelDir();
     _tts = SherpaOnnxTts(
       model: KokoroModel(
-        model: '$modelDir/kokoro-v0_19.onnx',
+        model: '$modelDir/model.onnx',
         voices: '$modelDir/voices.bin',
         tokens: '$modelDir/tokens.txt',
         dataDir: '$modelDir/espeak-ng-data',
