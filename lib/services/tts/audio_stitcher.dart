@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:threadcast/core/extensions.dart';
 
 import '../llm/models/transcript.dart';
 
@@ -10,14 +14,34 @@ class AudioStitcher {
     required List<TranscriptSegment> segments,
     required String episodeId,
   }) async {
-    // Build ffmpeg filter_complex for precise timing
-    // Each segment is placed at its calculated timestamp
-    // Overlapping segments are mixed at their overlap point
-
-    final timeline = _buildTimeline(segments);
     final outputPath = await _episodePath(episodeId);
 
-    await FFmpegKit.execute(_buildFfmpegCommand(timeline, outputPath));
+    // Fix 1: Ensure the output directory exists before FFmpeg tries to write to it.
+    await Directory(File(outputPath).parent.path).create(recursive: true);
+
+    // Fix 2: FFmpeg amix requires 2+ inputs. For a single segment, just copy the file.
+    if (segments.length == 1) {
+      await File(segments.first.audioFilePath!).copy(outputPath);
+      return outputPath;
+    }
+
+    final timeline = _buildTimeline(segments);
+
+    // Fix 3: Capture the session and check the exit code — don't silently ignore failures.
+    final session = await FFmpegKit.execute(_buildFfmpegCommand(timeline, outputPath));
+    final returnCode = await session.getReturnCode();
+    if (!ReturnCode.isSuccess(returnCode)) {
+      final logs = await session.getOutput();
+      throw Exception('FFmpeg stitching failed (exit code $returnCode). Logs: $logs');
+    }
+
+    // Fix 4: Clean up individual segment temp files now that they are merged.
+    for (final seg in segments) {
+      if (seg.audioFilePath != null) {
+        await File(seg.audioFilePath!).deleteIfExists();
+      }
+    }
+
     return outputPath;
   }
 
