@@ -110,7 +110,7 @@ class TtsService {
   ///
   /// Returns the absolute path to the WAV file and the audio duration so the
   /// caller can store it on the [TranscriptSegment] without a second read.
-  Future<String> synthesizeSegment({
+  Future<({String path, Duration duration})> synthesizeSegment({
     required TranscriptSegment segment,
     required String voice,
     required String episodeId,
@@ -123,11 +123,10 @@ class TtsService {
 
     final text = segment.text.trim();
 
-    // Return a silent placeholder for empty segments so the pipeline doesn't
-    // break — AudioStitcher handles zero-duration segments gracefully.
     if (text.isEmpty) {
       await File(outputPath).writeAsBytes(_silentWavHeader(sampleRate: 24000));
-      return outputPath;
+      // Silent placeholder has zero duration.
+      return (path: outputPath, duration: Duration.zero);
     }
 
     final speed = switch (segment.delivery.pace) {
@@ -149,7 +148,9 @@ class TtsService {
       throw Exception('TtsService: writeWave failed for $outputPath');
     }
 
-    return outputPath;
+    final durationMs = (audio.samples.length / audio.sampleRate * 1000).round();
+
+    return (path: outputPath, duration: Duration(milliseconds: durationMs));
   }
 
   /// All voice names available in the loaded model, sorted by SID.

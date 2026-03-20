@@ -144,16 +144,13 @@ class CreateNotifier extends StateNotifier<CreateState> {
           currentSpeaker: segments[i].speakerId,
         );
         final seg = segments[i];
-        final audioPath = await tts.synthesizeSegment(
+        final result = await tts.synthesizeSegment(
           segment: seg,
           voice: voiceMap[seg.speakerId] ?? 'am_adam',
           episodeId: episodeId,
           segmentIndex: i,
         );
-        synthesized.add(seg.copyWith(
-          audioFilePath: audioPath,
-          audioDuration: const Duration(seconds: 5),
-        ));
+        synthesized.add(seg.copyWith(audioFilePath: result.path, audioDuration: result.duration));
       }
 
       state = state.copyWith(status: CreateStatus.stitching, progress: null, currentSpeaker: null);
