@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:threadcast/features/library/widgets/episode_tile.dart';
 
 import 'library_provider.dart';
 
@@ -46,12 +47,18 @@ class LibraryScreen extends ConsumerWidget {
                 ),
                 confirmDismiss: (_) async => showDialog<bool>(
                   context: context,
-                  builder: (_) => AlertDialog(
+                  builder: (dialogContext) => AlertDialog(
                     title: const Text('Delete episode?'),
                     content: const Text('This cannot be undone.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                      TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: const Text('Delete'),
+                      ),
                     ],
                   ),
                 ),
@@ -61,12 +68,7 @@ class LibraryScreen extends ConsumerWidget {
                       mp3Path: ep.audioMp3Path,
                       transcriptPath: ep.transcriptJsonPath,
                     ),
-                child: ListTile(
-                  title: Text(ep.title),
-                  subtitle: Text('${ep.subreddit} -- ${ep.durationSeconds ~/ 60}m ${ep.durationSeconds % 60}s'),
-                  trailing: const Icon(Icons.play_arrow),
-                  onTap: () => context.push('/player/${ep.episodeId}'),
-                ),
+                child: EpisodeTile(episode: ep),
               );
             },
           );
