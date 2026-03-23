@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/providers.dart';
 import '../../models/episode.dart';
@@ -104,6 +105,7 @@ class CreateNotifier extends StateNotifier<CreateState> {
     final episodeId = const Uuid().v4();
 
     try {
+      await WakelockPlus.enable();
       state = state.copyWith(status: CreateStatus.scraping, error: null);
       final llm = _ref.read(llmServiceProvider);
       // if (!await llm.isAvailable()) {
@@ -301,6 +303,8 @@ class CreateNotifier extends StateNotifier<CreateState> {
       state = state.copyWith(status: CreateStatus.failed, error: details);
     } catch (e) {
       state = state.copyWith(status: CreateStatus.failed, error: e.toString());
+    } finally {
+      await WakelockPlus.disable();
     }
   }
 }
