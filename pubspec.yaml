@@ -31,6 +31,7 @@ dependencies:
   # IMPORTANT: The first Gradle build will fail (AAR download incomplete).
   #            Run `flutter run` a second time and it will succeed.
   ffmpeg_kit_flutter_new: ^4.1.0
+  wakelock_plus: ^1.2.0
 
   # Database -- drift replaces unmaintained isar (abandoned 2023).
   # drift is actively maintained by simolus3 and widely used.
