@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 import '../../models/episode.dart'; // AppDatabase passed in as parameter -- no provider import needed
 
@@ -17,21 +17,30 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     try {
       final ep = await db.episodeById(episodeId);
       if (ep?.audioWavPath == null) return;
-      await _player.setFilePath(ep!.audioWavPath!);
-      state = PlayerState.ready(episode: ep, duration: _player.duration ?? Duration.zero);
+      // Wrap the audio source with metadata for the lock screen notification.
+      final audioSource = AudioSource.file(
+        ep!.audioWavPath!,
+        tag: MediaItem(
+          id: ep.episodeId,
+          title: ep.title,
+          artist: 'r/${ep.subreddit}',
+          // Duration is approximate at load time; just_audio updates it
+          // automatically once the file is fully buffered.
+          duration: Duration(seconds: ep.durationSeconds),
+        ),
+      );
+
+      await _player.setAudioSource(audioSource);
+      state = PlayerState.ready(
+        episode: ep,
+        duration: _player.duration ?? Duration(seconds: ep.durationSeconds),
+      );
       await play();
     } catch (_) {}
   }
 
-  Future<void> play() async {
-    await WakelockPlus.enable(); // keep screen on during playback
-    return _player.play();
-  }
-
-  Future<void> pause() async {
-    await WakelockPlus.disable();
-    return _player.pause();
-  }
+  Future<void> play() => _player.play();
+  Future<void> pause() => _player.pause();
 
   Future<void> seekTo(Duration p) => _player.seek(p);
   Future<void> skipForward() => _player.seek(_player.position + const Duration(seconds: 10));

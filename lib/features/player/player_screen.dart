@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/providers.dart';
 import 'player_provider.dart';
@@ -26,13 +25,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       final db = ref.read(databaseProvider);
       ref.read(playerProvider.notifier).loadEpisodeById(widget.episodeId, db);
     });
-  }
-
-  @override
-  void dispose() {
-    // Always release the wakelock when leaving the player.
-    WakelockPlus.disable();
-    super.dispose();
   }
 
   @override
