@@ -186,7 +186,7 @@ class _SpeedSelectorState extends State<_SpeedSelector> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ChoiceChip(
-              label: Text('${speed}×'),
+              label: Text('$speed×'),
               selected: _speed == speed,
               onSelected: (_) {
                 setState(() => _speed = speed);
