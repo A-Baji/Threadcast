@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:threadcast/shared/widgets/unsupported_device_screen.dart';
 
 import 'create_provider.dart';
@@ -25,6 +26,17 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for state changes outside of the build return.
+    // ref.listen triggers a callback whenever the provider's value changes.
+    ref.listen<CreateState>(createProvider, (previous, next) {
+      if (next.status == CreateStatus.complete && next.episode != null) {
+        // Navigate to the player for the newly created episode.
+        // context.push keeps the Create screen in the back stack so the user
+        // can return to it and create another episode.
+        context.push('/player/${next.episode!.episodeId}');
+      }
+    });
+
     final state = ref.watch(createProvider);
     final notifier = ref.read(createProvider.notifier);
 

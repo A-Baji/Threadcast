@@ -19,6 +19,7 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
       if (ep?.audioWavPath == null) return;
       await _player.setFilePath(ep!.audioWavPath!);
       state = PlayerState.ready(episode: ep, duration: _player.duration ?? Duration.zero);
+      await play();
     } catch (_) {}
   }
 
