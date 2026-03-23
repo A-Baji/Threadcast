@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+
 import '../../models/episode.dart'; // AppDatabase passed in as parameter -- no provider import needed
 
 final playerProvider = StateNotifierProvider<PlayerNotifier, PlayerState>(
@@ -15,16 +17,34 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     try {
       final ep = await db.episodeById(episodeId);
       if (ep?.audioWavPath == null) return;
-      await _player.setFilePath(ep!.audioWavPath!);
-      state = PlayerState.ready(episode: ep, duration: _player.duration ?? Duration.zero);
+      // Wrap the audio source with metadata for the lock screen notification.
+      final audioSource = AudioSource.file(
+        ep!.audioWavPath!,
+        tag: MediaItem(
+          id: ep.episodeId,
+          title: ep.title,
+          artist: 'r/${ep.subreddit}',
+          // Duration is approximate at load time; just_audio updates it
+          // automatically once the file is fully buffered.
+          duration: Duration(seconds: ep.durationSeconds),
+        ),
+      );
+
+      await _player.setAudioSource(audioSource);
+      state = PlayerState.ready(
+        episode: ep,
+        duration: _player.duration ?? Duration(seconds: ep.durationSeconds),
+      );
+      await play();
     } catch (_) {}
   }
 
   Future<void> play() => _player.play();
   Future<void> pause() => _player.pause();
+
   Future<void> seekTo(Duration p) => _player.seek(p);
-  Future<void> skipForward() => _player.seek(_player.position + const Duration(seconds: 15));
-  Future<void> skipBackward() => _player.seek(_player.position - const Duration(seconds: 15));
+  Future<void> skipForward() => _player.seek(_player.position + const Duration(seconds: 10));
+  Future<void> skipBackward() => _player.seek(_player.position - const Duration(seconds: 10));
 
   Stream<Duration> get positionStream => _player.positionStream;
   Duration get position => _player.position;
@@ -34,6 +54,12 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     _player.dispose();
     super.dispose();
   }
+
+  // Expose whether audio is currently playing as a stream
+  Stream<bool> get playingStream => _player.playingStream;
+
+// Change playback speed (0.75, 1.0, 1.25, 1.5)
+  Future<void> setSpeed(double speed) => _player.setSpeed(speed);
 }
 
 class PlayerState {

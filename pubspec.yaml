@@ -27,6 +27,7 @@ dependencies:
   sherpa_onnx: ^1.12.29
   # Audio playback
   just_audio: ^0.10.5
+  just_audio_background: ^0.0.1-beta.17
   # ffmpeg_kit_flutter_new is the original author's recommended community fork.
   # IMPORTANT: The first Gradle build will fail (AAR download incomplete).
   #            Run `flutter run` a second time and it will succeed.
@@ -46,6 +47,7 @@ dependencies:
   uuid: ^4.3.0
   collection: ^1.18.0
   device_info_plus: ^12.3.0
+  wakelock_plus: ^1.5.1
 
 dev_dependencies:
   flutter_test:
