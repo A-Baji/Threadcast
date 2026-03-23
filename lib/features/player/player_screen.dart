@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:threadcast/features/player/widgets/transcript_view.dart';
 
 import '../../core/providers.dart';
 import 'player_provider.dart';
@@ -53,6 +54,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget _buildPlayerBody(BuildContext context, PlayerState state, PlayerNotifier notifier) {
     final episode = state.episode!;
     final total = state.duration ?? Duration.zero;
+    final transcriptPath = episode.transcriptJsonPath;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -79,9 +81,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     value: totalMs > 0 ? posMs / totalMs : 0.0,
                     onChanged: totalMs > 0
                         ? (value) {
-                            notifier.seekTo(Duration(
-                              milliseconds: (value * totalMs).round(),
-                            ));
+                            notifier.seekTo(Duration(milliseconds: (value * totalMs).round()));
                           }
                         : null,
                   ),
@@ -140,6 +140,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             onSpeedChanged: (speed) {
               notifier.setSpeed(speed);
             },
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          Expanded(
+            child: transcriptPath == null
+                ? const Center(child: Text('No transcript available'))
+                : TranscriptView(
+                    transcriptJsonPath: transcriptPath,
+                    positionStream: notifier.positionStream,
+                  ),
           ),
         ],
       ),

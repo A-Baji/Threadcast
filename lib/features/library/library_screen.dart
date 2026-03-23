@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import 'library_provider.dart';
 
 class LibraryScreen extends ConsumerWidget {
@@ -54,9 +55,12 @@ class LibraryScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                onDismissed: (_) => ref
-                    .read(libraryProvider.notifier)
-                    .deleteEpisode(ep.id, wavPath: ep.audioWavPath, mp3Path: ep.audioMp3Path),
+                onDismissed: (_) => ref.read(libraryProvider.notifier).deleteEpisode(
+                      ep.id,
+                      wavPath: ep.audioWavPath,
+                      mp3Path: ep.audioMp3Path,
+                      transcriptPath: ep.transcriptJsonPath,
+                    ),
                 child: ListTile(
                   title: Text(ep.title),
                   subtitle: Text('${ep.subreddit} -- ${ep.durationSeconds ~/ 60}m ${ep.durationSeconds % 60}s'),
