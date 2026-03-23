@@ -1,5 +1,7 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/extensions.dart';
 import '../../core/providers.dart';
 import '../../models/episode.dart';
@@ -25,10 +27,11 @@ class LibraryNotifier extends StateNotifier<AsyncValue<List<Episode>>> {
     }
   }
 
-  Future<void> deleteEpisode(int rowId, {String? wavPath, String? mp3Path}) async {
+  Future<void> deleteEpisode(int rowId, {String? wavPath, String? mp3Path, String? transcriptPath}) async {
     try {
       if (wavPath != null) await File(wavPath).deleteIfExists();
       if (mp3Path != null) await File(mp3Path).deleteIfExists();
+      if (transcriptPath != null) await File(transcriptPath).deleteIfExists();
       await _ref.read(databaseProvider).deleteEpisodeById(rowId);
       await reload();
     } catch (e, st) {
