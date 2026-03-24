@@ -16,6 +16,18 @@ class CreateScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateScreenState extends ConsumerState<CreateScreen> {
+  bool _bannerDismissed = false;
+
+  bool _isGeneratingStatus(CreateStatus status) {
+    return {
+      CreateStatus.scraping,
+      CreateStatus.analyzing,
+      CreateStatus.generatingTranscript,
+      CreateStatus.synthesizing,
+      CreateStatus.stitching,
+    }.contains(status);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,18 +47,20 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
         // can return to it and create another episode.
         context.push('/player/${next.episode!.episodeId}');
       }
+
+      final wasGenerating = previous != null && _isGeneratingStatus(previous.status);
+      final isGeneratingNow = _isGeneratingStatus(next.status);
+      if (wasGenerating && !isGeneratingNow && _bannerDismissed && mounted) {
+        setState(() {
+          _bannerDismissed = false;
+        });
+      }
     });
 
     final state = ref.watch(createProvider);
     final notifier = ref.read(createProvider.notifier);
 
-    final isGenerating = {
-      CreateStatus.scraping,
-      CreateStatus.analyzing,
-      CreateStatus.generatingTranscript,
-      CreateStatus.synthesizing,
-      CreateStatus.stitching,
-    }.contains(state.status);
+    final isGenerating = _isGeneratingStatus(state.status);
 
     if (state.status == CreateStatus.checkingCompatibility) {
       return Scaffold(
@@ -70,6 +84,27 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (isGenerating && !_bannerDismissed) ...[
+                MaterialBanner(
+                  padding: const EdgeInsets.all(16),
+                  content: const Text(
+                    'Keep Threadcast open while generating. The screen will stay on.',
+                  ),
+                  backgroundColor: Colors.amber.shade100,
+                  leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _bannerDismissed = true;
+                        });
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
               UrlInputField(onSubmit: notifier.addUrl),
               const SizedBox(height: 16),
               if (state.urls.isNotEmpty)
