@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:threadcast/features/player/widgets/transcript_view.dart';
+import 'package:threadcast/services/tts/export_service.dart';
 
 import '../../core/providers.dart';
 import 'player_provider.dart';
@@ -16,16 +17,31 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+  bool _isSharing = false;
+  final _exportService = ExportService();
+
   @override
   void initState() {
     super.initState();
-    // Load the episode as soon as the screen opens.
-    // addPostFrameCallback ensures the first build is complete before we
-    // trigger state changes.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final db = ref.read(databaseProvider);
       ref.read(playerProvider.notifier).loadEpisodeById(widget.episodeId, db);
     });
+  }
+
+  Future<void> _share(episode) async {
+    setState(() => _isSharing = true);
+    try {
+      await _exportService.shareEpisode(episode);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Share failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharing = false);
+    }
   }
 
   @override
@@ -39,7 +55,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Stop playback when navigating away
             notifier.pause();
             context.pop();
           },
@@ -61,13 +76,36 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Episode title and subreddit badge
+          // Title
           Text(episode.title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 4),
-          Chip(label: Text('r/${episode.subreddit}')),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
-          // Seek bar — updates in real time using positionStream
+          // Subreddit chip + Share button on the same row
+          Row(
+            children: [
+              Chip(label: Text('r/${episode.subreddit}')),
+              const Spacer(),
+              _isSharing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : TextButton.icon(
+                      onPressed: () => _share(episode),
+                      icon: const Icon(Icons.ios_share, size: 18),
+                      label: const Text(''),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Seek bar
           StreamBuilder<Duration>(
             stream: notifier.positionStream,
             builder: (context, snapshot) {
@@ -85,7 +123,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           }
                         : null,
                   ),
-                  // Current time / total time display
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -100,7 +137,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
           const SizedBox(height: 16),
 
-          // Transport controls row
+          // Transport controls
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -111,7 +148,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 tooltip: 'Back 10 seconds',
               ),
               const SizedBox(width: 16),
-              // Play/pause button — use StreamBuilder so it reflects actual player state
               StreamBuilder<bool>(
                 stream: notifier.playingStream,
                 builder: (context, snap) {
@@ -135,14 +171,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
           const SizedBox(height: 16),
 
-          // Playback speed selector
-          _SpeedSelector(
-            onSpeedChanged: (speed) {
-              notifier.setSpeed(speed);
-            },
-          ),
+          // Speed selector
+          _SpeedSelector(onSpeedChanged: notifier.setSpeed),
+
           const SizedBox(height: 16),
           const Divider(),
+
           Expanded(
             child: transcriptPath == null
                 ? const Center(child: Text('No transcript available'))
@@ -186,7 +220,7 @@ class _SpeedSelectorState extends State<_SpeedSelector> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ChoiceChip(
-              label: Text('$speed×'),
+              label: Text('${speed}×'),
               selected: _speed == speed,
               onSelected: (_) {
                 setState(() => _speed = speed);
