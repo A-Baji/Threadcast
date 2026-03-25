@@ -50,6 +50,16 @@ dependencies:
   device_info_plus: ^12.3.0
   wakelock_plus: ^1.5.1
 
+
+  # On-device LLM fallback via MediaPipe GenAI Tasks API.
+  # Supports both Android and iOS from a single Dart interface.
+  # Uses Gemma 3 1B IT INT4 (.task format) when the OS model is unavailable.
+  # Note: flutter_gemma wraps the deprecated MediaPipe LLM Inference API
+  # (tasks-genai 0.10.24+). Google recommends migrating to LiteRT-LM once its
+  # mobile SDKs reach production quality — flutter_gemma will handle this
+  # migration internally, requiring no app-level changes.
+  flutter_gemma: ^0.12.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

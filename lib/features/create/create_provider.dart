@@ -8,6 +8,9 @@ import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:threadcast/services/llm/llm_service.dart';
+import 'package:threadcast/services/llm/llm_service_router.dart';
+import 'package:threadcast/services/llm/model_download_manager.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -110,8 +113,20 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
     try {
       await WakelockPlus.enable();
-      state = state.copyWith(status: CreateStatus.scraping, error: null);
+
       final llm = _ref.read(llmServiceProvider);
+      final router = llm is LlmServiceRouter ? llm : null;
+
+      if (router != null && await router.needsModelDownload) {
+        state = state.copyWith(
+          status: CreateStatus.awaitingDownloadConsent,
+          error: null,
+        );
+        await WakelockPlus.disable();
+        return;
+      }
+
+      state = state.copyWith(status: CreateStatus.scraping, error: null);
       if (!await llm.isAvailable()) {
         state = state.copyWith(
           status: CreateStatus.failed,
@@ -125,15 +140,17 @@ class CreateNotifier extends StateNotifier<CreateState> {
 
       state = state.copyWith(status: CreateStatus.analyzing);
       final promptBuilder = _ref.read(llmPromptBuilderProvider);
-      final analysisRaw = await llm.generateRaw(promptBuilder.buildAnalysisPrompt(posts));
-      final analysis = jsonDecode(analysisRaw) as Map<String, dynamic>;
+      final analysis = await _generateAnalysis(
+        llm: llm,
+        analysisPrompt: promptBuilder.buildAnalysisPrompt(posts),
+      );
 
       state = state.copyWith(status: CreateStatus.generatingTranscript);
-      final transcriptRaw =
-          await llm.generateRaw(promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis));
-      final segments = (jsonDecode(transcriptRaw) as List)
-          .map((s) => TranscriptSegment.fromJson(s as Map<String, dynamic>))
-          .toList();
+      final transcriptPrompt = promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis);
+      final segments = await _generateTranscriptSegments(
+        llm: llm,
+        transcriptPrompt: transcriptPrompt,
+      );
 
       final speakers = (analysis['speakers'] as List).map((s) => Speaker.fromJson(s as Map<String, dynamic>)).toList();
       final voiceMap = VoiceAssignment.assignVoices(speakers);
@@ -238,6 +255,204 @@ class CreateNotifier extends StateNotifier<CreateState> {
     }
   }
 
+  Future<List<TranscriptSegment>> _generateTranscriptSegments({
+    required LlmService llm,
+    required String transcriptPrompt,
+  }) async {
+    var transcriptRaw = await llm.generateRaw(transcriptPrompt);
+    var parsed = _tryParseTranscriptSegments(transcriptRaw);
+    if (parsed != null) {
+      return parsed;
+    }
+
+    // Retry once with tighter output constraints for on-device models.
+    transcriptRaw = await llm.generateRaw(
+      '$transcriptPrompt\n\n'
+      'IMPORTANT: Return compact output to fit on-device limits:\n'
+      '- Maximum 16 segments\n'
+      '- Maximum 2 sentences per segment\n'
+      '- JSON array only, no markdown or commentary.',
+    );
+    parsed = _tryParseTranscriptSegments(transcriptRaw);
+    if (parsed != null) {
+      return parsed;
+    }
+
+    throw const FormatException(
+      'Unable to parse transcript JSON from model output after retry.',
+    );
+  }
+
+  Future<Map<String, dynamic>> _generateAnalysis({
+    required LlmService llm,
+    required String analysisPrompt,
+  }) async {
+    var analysisRaw = await llm.generateRaw(analysisPrompt);
+    var parsed = _tryParseAnalysis(analysisRaw);
+    if (parsed != null) {
+      return parsed;
+    }
+
+    analysisRaw = await llm.generateRaw(
+      '$analysisPrompt\n\n'
+      'IMPORTANT:\n'
+      '- Return a single JSON object only\n'
+      '- No markdown/code fences\n'
+      '- Keep fields concise to fit on-device limits.',
+    );
+
+    parsed = _tryParseAnalysis(analysisRaw);
+    if (parsed != null) {
+      return parsed;
+    }
+
+    throw const FormatException(
+      'Unable to parse analysis JSON from model output after retry.',
+    );
+  }
+
+  Map<String, dynamic>? _tryParseAnalysis(String raw) {
+    try {
+      return _parseJsonObject(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<TranscriptSegment>? _tryParseTranscriptSegments(String raw) {
+    try {
+      final list = _parseJsonArray(raw);
+      return list.map((s) => TranscriptSegment.fromJson(s as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _parseJsonObject(String raw) {
+    final decoded = jsonDecode(_extractJsonPayload(raw));
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Expected JSON object from model output.');
+    }
+    return decoded;
+  }
+
+  List<dynamic> _parseJsonArray(String raw) {
+    final decoded = jsonDecode(_extractJsonPayload(raw));
+    if (decoded is! List<dynamic>) {
+      throw const FormatException('Expected JSON array from model output.');
+    }
+    return decoded;
+  }
+
+  String _extractJsonPayload(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) {
+      throw const FormatException('Empty model response.');
+    }
+
+    // Remove markdown fences when present.
+    final fenceMatch = RegExp(
+      r'^```(?:json)?\s*([\s\S]*?)\s*```$',
+      caseSensitive: false,
+      multiLine: true,
+    ).firstMatch(trimmed);
+    final withoutFence = fenceMatch != null ? fenceMatch.group(1)!.trim() : trimmed;
+
+    final startObject = withoutFence.indexOf('{');
+    final startArray = withoutFence.indexOf('[');
+    final starts = [startObject, startArray].where((i) => i >= 0).toList()..sort();
+    if (starts.isEmpty) {
+      throw const FormatException('Model output did not contain JSON payload.');
+    }
+
+    final start = starts.first;
+    final end = _findJsonEnd(withoutFence, start);
+    if (end == -1) {
+      throw const FormatException('Malformed/truncated JSON output from model.');
+    }
+
+    return withoutFence.substring(start, end + 1).trim();
+  }
+
+  int _findJsonEnd(String source, int start) {
+    final open = source[start];
+    final close = open == '{' ? '}' : ']';
+
+    var depth = 0;
+    var inString = false;
+    var escaping = false;
+
+    for (var i = start; i < source.length; i++) {
+      final ch = source[i];
+
+      if (escaping) {
+        escaping = false;
+        continue;
+      }
+
+      if (ch == '\\') {
+        escaping = true;
+        continue;
+      }
+
+      if (ch == '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (inString) {
+        continue;
+      }
+
+      if (ch == open) {
+        depth++;
+      } else if (ch == close) {
+        depth--;
+        if (depth == 0) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  /// Called when the user taps "Download" in the consent dialog.
+  /// Starts the download, reports progress, then resumes generation.
+  Future<void> confirmDownload() async {
+    try {
+      await WakelockPlus.enable();
+
+      state = state.copyWith(
+        status: CreateStatus.modelDownloading,
+        downloadProgress: 0.0,
+      );
+
+      final downloader = ModelDownloadManager();
+      await for (final progress in downloader.download()) {
+        state = state.copyWith(
+          status: CreateStatus.modelDownloading,
+          downloadProgress: progress,
+        );
+      }
+
+      state = state.copyWith(status: CreateStatus.idle, downloadProgress: null);
+      await generatePodcast();
+    } catch (_) {
+      state = state.copyWith(
+        status: CreateStatus.failed,
+        error: 'Download failed. Check your connection and try again.',
+      );
+      await WakelockPlus.disable();
+    }
+  }
+
+  /// Called when the user taps "Not now" in the consent dialog.
+  /// Returns to idle with URLs intact so the user can try again later.
+  void cancelDownload() {
+    state = state.copyWith(status: CreateStatus.idle, downloadProgress: null);
+  }
+
   List<TranscriptSegment> _withAudioOffsets(List<TranscriptSegment> segments) {
     final timedSegments = <TranscriptSegment>[];
     var currentMs = 0;
@@ -279,6 +494,7 @@ class CreateState {
     this.status, {
     this.urls = const [],
     this.progress,
+    this.downloadProgress,
     this.currentSpeaker,
     this.partialAudioPath,
     this.episode,
@@ -291,6 +507,7 @@ class CreateState {
   final CreateStatus status;
   final List<String> urls;
   final double? progress;
+  final double? downloadProgress;
   final String? currentSpeaker;
   final String? partialAudioPath;
   final Episode? episode;
@@ -301,6 +518,7 @@ class CreateState {
     CreateStatus? status,
     List<String>? urls,
     double? progress,
+    double? downloadProgress,
     String? currentSpeaker,
     String? partialAudioPath,
     Episode? episode,
@@ -311,6 +529,7 @@ class CreateState {
       status ?? this.status,
       urls: urls ?? this.urls,
       progress: progress,
+      downloadProgress: downloadProgress,
       currentSpeaker: currentSpeaker,
       partialAudioPath: partialAudioPath ?? this.partialAudioPath,
       episode: episode ?? this.episode,
@@ -324,6 +543,8 @@ enum CreateStatus {
   idle,
   checkingCompatibility,
   unsupported,
+  awaitingDownloadConsent,
+  modelDownloading,
   scraping,
   analyzing,
   generatingTranscript,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:threadcast/shared/widgets/unsupported_device_screen.dart';
 
+import '../../core/constants.dart';
 import 'create_provider.dart';
 import 'widgets/generation_progress.dart';
 import 'widgets/url_chip_list.dart';
@@ -20,12 +21,64 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
 
   bool _isGeneratingStatus(CreateStatus status) {
     return {
+      CreateStatus.awaitingDownloadConsent,
+      CreateStatus.modelDownloading,
       CreateStatus.scraping,
       CreateStatus.analyzing,
       CreateStatus.generatingTranscript,
       CreateStatus.synthesizing,
       CreateStatus.stitching,
     }.contains(status);
+  }
+
+  void _showDownloadConsentDialog(BuildContext context) {
+    final notifier = ref.read(createProvider.notifier);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('One-time download required'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              "Your device's built-in AI isn't available, so Threadcast needs "
+              'to download a local AI model the first time you generate a podcast.',
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Download size: ${AppConstants.gemmaModelDisplaySize}',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'We recommend Wi-Fi. The model is saved permanently to your device '
+              'and reused automatically — you will never be asked to download it again. '
+              'If the download is interrupted, it will resume where it left off.',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              notifier.cancelDownload();
+            },
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              notifier.confirmDownload();
+            },
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -46,6 +99,11 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
         // context.push keeps the Create screen in the back stack so the user
         // can return to it and create another episode.
         context.push('/player/${next.episode!.episodeId}');
+      }
+
+      if (next.status == CreateStatus.awaitingDownloadConsent &&
+          previous?.status != CreateStatus.awaitingDownloadConsent) {
+        _showDownloadConsentDialog(context);
       }
 
       final wasGenerating = previous != null && _isGeneratingStatus(previous.status);

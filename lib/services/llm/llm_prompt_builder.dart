@@ -141,13 +141,13 @@ class LlmPromptBuilder {
       tokenBudget: 2000,
     );
 
-    final commentsJson = jsonEncode(commentsForPrompt.map((c) => c.toJson()).toList());
+    final commentsJson = jsonEncode(commentsForPrompt.map(_toPromptCommentJson).toList());
 
     return _analysisPromptTemplate
-        .replaceAll('{subreddit}', posts.first.subreddit)
-        .replaceAll('{title}', posts.map((p) => p.title).join(' / '))
-        .replaceAll('{author}', posts.first.authorName)
-        .replaceAll('{post_author}', posts.first.authorName)
+        .replaceAll('{subreddit}', _sanitizeText(posts.first.subreddit))
+        .replaceAll('{title}', _sanitizeText(posts.map((p) => p.title).join(' / ')))
+        .replaceAll('{author}', _sanitizeText(posts.first.authorName))
+        .replaceAll('{post_author}', _sanitizeText(posts.first.authorName))
         .replaceAll('{post_body}', postSection)
         .replaceAll('{comments_json}', commentsJson);
   }
@@ -162,8 +162,8 @@ class LlmPromptBuilder {
 
     return _transcriptPromptTemplate
         .replaceAll('{analysis_json_from_phase_1}', jsonEncode(analysis))
-        .replaceAll('{post_body}', posts.map((p) => p.selftext).join('\n\n---\n\n'))
-        .replaceAll('{selected_comments_json}', jsonEncode(selectedComments.map((c) => c.toJson()).toList()))
+        .replaceAll('{post_body}', posts.map((p) => _sanitizeText(p.selftext)).join('\n\n---\n\n'))
+        .replaceAll('{selected_comments_json}', jsonEncode(selectedComments.map(_toPromptCommentJson).toList()))
         .replaceAll('{tone}', analysis['tone'] as String);
   }
 
@@ -215,7 +215,26 @@ class LlmPromptBuilder {
   }
 
   String _formatPost(RedditPost post) {
-    return post.selftext;
+    return _sanitizeText(post.selftext);
+  }
+
+  Map<String, dynamic> _toPromptCommentJson(RedditComment comment) {
+    return {
+      'id': comment.id,
+      'author': _sanitizeText(comment.authorName),
+      'body': _sanitizeText(comment.body),
+      'score': comment.score,
+      'depth': comment.depth,
+      'parent_id': comment.parentId,
+      // Keep the key for schema familiarity, but avoid recursively embedding
+      // entire reply trees in each flattened comment object.
+      'replies': const <Map<String, dynamic>>[],
+      'is_op': comment.isOp,
+    };
+  }
+
+  String _sanitizeText(String value) {
+    return value.replaceAll(RegExp(r'[\u0000-\u0008\u000B\u000C\u000E-\u001F]'), ' ').trim();
   }
 }
 

@@ -9,6 +9,33 @@ class GenerationProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (state.status == CreateStatus.awaitingDownloadConsent) {
+      return const SizedBox.shrink();
+    }
+
+    if (state.status == CreateStatus.modelDownloading) {
+      final pct = state.downloadProgress ?? 0.0;
+      final pctStr = '${(pct * 100).toStringAsFixed(0)}%';
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Downloading AI model ($pctStr)…',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Keep the app open. If you close it, the download will resume next time.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(value: pct > 0 ? pct : null),
+        ],
+      );
+    }
+
     final labels = {
       CreateStatus.scraping: 'Fetching post...',
       CreateStatus.analyzing: 'Analyzing content...',
