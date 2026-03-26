@@ -32,6 +32,17 @@ class LlmServiceRouter implements LlmService {
     return !(await ModelDownloadManager.isModelReady());
   }
 
+  /// True when the OS model (AICore / Foundation Models) is available and
+  /// will be used for generation.
+  ///
+  /// Returns false when the Gemma fallback is active. Used by CreateNotifier
+  /// to select the correct prompt template without making a second async
+  /// availability call.
+  ///
+  /// Caches the result of the first call for the app session — OS model
+  /// availability does not change at runtime.
+  Future<bool> get usingOsModel => _resolveOsAvailable();
+
   @override
   Future<bool> isAvailable() async => true;
 

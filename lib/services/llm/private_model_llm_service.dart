@@ -14,10 +14,9 @@ import 'model_download_manager.dart';
 /// Requires [ModelDownloadManager.isModelReady()] to return true before
 /// [generateRaw] is called.
 class PrivateModelLlmService implements LlmService {
-  // Keep an emergency guard to avoid native aborts when malformed inputs exceed
-  // the model context budget. Approximation uses ~4 chars/token and reserves
-  // 1k tokens for generation output.
-  static const int _promptCharBudget = (AppConstants.gemmaMaxTokens - 1024) * 4;
+  // Derived from AppConstants.gemmaPromptCharLimit which is itself derived from
+  // gemmaInputBudget. Change the constants in constants.dart, not here.
+  static const int _promptCharBudget = AppConstants.gemmaPromptCharLimit;
 
   InferenceModel? _model;
 
@@ -33,8 +32,9 @@ class PrivateModelLlmService implements LlmService {
 
     final path = await ModelDownloadManager.modelPath();
 
-    final modelManager = FlutterGemmaPlugin.instance.modelManager;
-    await modelManager.setModelPath(path);
+    await FlutterGemma.installModel(
+      modelType: ModelType.gemmaIt, // Adjust to your model type (e.g., gemma2b, deepSeek)
+    ).fromFile(path).install();
 
     _model = await FlutterGemmaPlugin.instance.createModel(
       modelType: ModelType.gemmaIt,
@@ -50,9 +50,15 @@ class PrivateModelLlmService implements LlmService {
   Future<String> generateRaw(String prompt) async {
     await initialize();
 
-    final session = await _model!.createSession();
+    final session = await _model!.createSession(
+      // Greedy decoding (topK=1) can get stuck in repetitive loops and run
+      // until sequence exhaustion. A small sampling window tends to reach EOS
+      // earlier while preserving structured JSON quality.
+      topK: 40,
+      temperature: 0.4,
+    );
     try {
-      final safePrompt = _truncatePrompt(prompt);
+      final safePrompt = _truncatePrompt(_tightenGemmaPrompt(prompt));
       await session.addQueryChunk(Message.text(text: safePrompt, isUser: true));
       final response = await session.getResponse();
 
@@ -86,5 +92,17 @@ class PrivateModelLlmService implements LlmService {
 
     return '${prompt.substring(0, _promptCharBudget)}\n\n'
         '[Truncated to fit on-device model token budget.]';
+  }
+
+  String _tightenGemmaPrompt(String prompt) {
+    const hardLimit = '\n\nIMPORTANT HARD LIMITS:\n'
+        '- Return valid JSON only.\n'
+        '- Keep the response concise.\n'
+        '- Stop immediately after the JSON closes.';
+
+    if (prompt.contains('IMPORTANT HARD LIMITS:')) {
+      return prompt;
+    }
+    return '$prompt$hardLimit';
   }
 }

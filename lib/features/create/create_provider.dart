@@ -118,6 +118,15 @@ class CreateNotifier extends StateNotifier<CreateState> {
       final router = llm is LlmServiceRouter ? llm : null;
 
       if (router != null && await router.needsModelDownload) {
+        if (await ModelDownloadManager.hasPartialDownload()) {
+          // The user already accepted the consent dialog in a previous session.
+          // An interrupted download left a .part file on disk. Resume silently
+          // without showing the dialog again.
+          await WakelockPlus.disable();
+          await confirmDownload();
+          return;
+        }
+
         state = state.copyWith(
           status: CreateStatus.awaitingDownloadConsent,
           error: null,
@@ -125,6 +134,8 @@ class CreateNotifier extends StateNotifier<CreateState> {
         await WakelockPlus.disable();
         return;
       }
+
+      final usingGemmaFallback = router != null && !(await router.usingOsModel);
 
       state = state.copyWith(status: CreateStatus.scraping, error: null);
       if (!await llm.isAvailable()) {
@@ -142,11 +153,15 @@ class CreateNotifier extends StateNotifier<CreateState> {
       final promptBuilder = _ref.read(llmPromptBuilderProvider);
       final analysis = await _generateAnalysis(
         llm: llm,
-        analysisPrompt: promptBuilder.buildAnalysisPrompt(posts),
+        analysisPrompt: usingGemmaFallback
+            ? promptBuilder.buildGemmaAnalysisPrompt(posts)
+            : promptBuilder.buildAnalysisPrompt(posts),
       );
 
       state = state.copyWith(status: CreateStatus.generatingTranscript);
-      final transcriptPrompt = promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis);
+      final transcriptPrompt = usingGemmaFallback
+          ? promptBuilder.buildGemmaTranscriptPrompt(posts: posts, analysis: analysis)
+          : promptBuilder.buildTranscriptPrompt(posts: posts, analysis: analysis);
       final segments = await _generateTranscriptSegments(
         llm: llm,
         transcriptPrompt: transcriptPrompt,

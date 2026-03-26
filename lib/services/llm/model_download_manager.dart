@@ -33,6 +33,25 @@ class ModelDownloadManager {
     return await file.length() > 400 * 1024 * 1024;
   }
 
+  /// Returns true when a partial download is already in progress on disk.
+  ///
+  /// A `.part` file with at least 10 MB written indicates the user has already
+  /// seen and accepted the consent dialog during a previous session. The create
+  /// flow uses this to auto-resume the download silently rather than showing
+  /// the consent dialog again.
+  ///
+  /// The 10 MB threshold filters out empty or nearly-empty `.part` files that
+  /// could have been created by a failed connection attempt before any bytes
+  /// were transferred.
+  static Future<bool> hasPartialDownload() async {
+    final path = await modelPath();
+    final partFile = File('$path.part');
+    if (!await partFile.exists()) {
+      return false;
+    }
+    return await partFile.length() > 10 * 1024 * 1024;
+  }
+
   /// Downloads the model, yielding progress in [0.0, 1.0].
   ///
   /// Data accumulates in a `.part` file and is renamed atomically to the

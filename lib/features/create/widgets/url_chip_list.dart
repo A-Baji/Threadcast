@@ -33,7 +33,7 @@ class UrlChipList extends StatelessWidget {
         },
         itemCount: urls.length,
         onReorder: onReorder,
-        itemBuilder: (context, i) => Container(
+        itemBuilder: (context, i) => SizedBox(
           key: ValueKey('${urls[i]}-$i'),
           height: 54,
           child: Row(

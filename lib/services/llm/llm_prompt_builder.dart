@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:threadcast/core/constants.dart';
+
 import '../reddit/models/reddit_comment.dart';
 import '../reddit/models/reddit_post.dart';
 
@@ -167,6 +169,148 @@ class LlmPromptBuilder {
         .replaceAll('{tone}', analysis['tone'] as String);
   }
 
+  // -------------------------------------------------------------------------
+  // Gemma 3 1B fallback prompts
+  //
+  // The OS-model prompts (buildAnalysisPrompt / buildTranscriptPrompt) are
+  // optimised for the larger context windows of Gemini Nano and Foundation
+  // Models. The Gemma prompts below are structurally identical in intent but:
+  //   - Use a tighter schema definition to reduce template overhead
+  //   - Derive all truncation limits from AppConstants.gemmaInputBudget so
+  //     they automatically adjust if the budget constant is ever changed
+  //   - Apply more aggressive comment truncation since comment bodies are the
+  //     largest variable-cost component
+  //
+  // Budget allocation within the 7,680-token input budget:
+  //   ~300  tokens — prompt template + schema definition
+  //   ~600  tokens — post title + subreddit + author metadata
+  //   ~800  tokens — post body (truncated if necessary)
+  //   ~5,980 tokens — comments (truncated from bottom if over budget)
+  //   ─────────────────────────────────────────────────────────
+  //   7,680 tokens — total input budget (gemmaInputBudget)
+  // -------------------------------------------------------------------------
+
+  /// Analysis prompt for the Gemma 3 1B fallback path.
+  ///
+  /// Structurally equivalent to [buildAnalysisPrompt] but uses a more compact
+  /// schema definition to reduce template token overhead, and enforces the
+  /// gemmaInputBudget ceiling across all content fields.
+  String buildGemmaAnalysisPrompt(List<RedditPost> posts) {
+    final postSection = posts.length == 1
+        ? _formatPost(posts.first)
+        : posts.mapIndexed((i, p) => '## Part ${i + 1}\n${_formatPost(p)}').join('\n\n');
+
+    final truncatedPostSection = _truncateTo(postSection, 3200);
+
+    final sortedComments = posts.expand((p) => _flattenComments(p.comments)).toList()
+      ..sort((a, b) {
+        if (a.isOp != b.isOp) return a.isOp ? -1 : 1;
+        return b.score.compareTo(a.score);
+      });
+
+    const templateOverheadChars = 1200;
+    const metadataChars = 200;
+    final postBodyChars = truncatedPostSection.length;
+    final commentBudgetChars =
+        (AppConstants.gemmaInputBudget * 4) - templateOverheadChars - metadataChars - postBodyChars;
+
+    final commentsForPrompt = _truncateCommentsToFitBudget(
+      comments: sortedComments,
+      subreddit: posts.first.subreddit,
+      title: posts.map((p) => p.title).join(' / '),
+      author: posts.first.authorName,
+      postBody: truncatedPostSection,
+      tokenBudget: (commentBudgetChars / 4).floor().clamp(200, AppConstants.gemmaInputBudget),
+    ).take(24).toList();
+
+    final commentsJson = jsonEncode(
+      commentsForPrompt.map((c) => _toGemmaPromptCommentJson(c, maxBodyChars: 420)).toList(),
+    );
+
+    const schema = '''Return only a JSON object. No markdown. No explanation.
+Schema:
+{
+  "tone": "true_crime"|"talk_show"|"documentary"|"comedic"|"heartfelt",
+  "tone_reasoning": "one sentence",
+  "speakers": [
+    {"id":"op","reddit_username":"<author>","role":"main_speaker","personality_notes":"brief","voice_gender":"male"|"female"},
+    {"id":"speaker_2","reddit_username":"<name>","role":"commenter","personality_notes":"brief","voice_gender":"male"|"female","merged_usernames":[]}
+  ],
+  "selected_comment_ids": ["id1","id2"],
+  "episode_title": "punchy title"
+}
+Rules: infer tone from content; 2-5 speakers total; exclude bot comments.''';
+
+    return '$schema\n\n'
+        'SUBREDDIT: ${_sanitizeText(posts.first.subreddit)}\n'
+        'TITLE: ${_sanitizeText(posts.map((p) => p.title).join(" / "))}\n'
+        'AUTHOR: ${_sanitizeText(posts.first.authorName)}\n\n'
+        'POST:\n$truncatedPostSection\n\n'
+        'COMMENTS:\n$commentsJson';
+  }
+
+  /// Transcript prompt for the Gemma 3 1B fallback path.
+  ///
+  /// Structurally equivalent to [buildTranscriptPrompt] but uses a more compact
+  /// schema definition and enforces the gemmaInputBudget ceiling.
+  String buildGemmaTranscriptPrompt({
+    required List<RedditPost> posts,
+    required Map<String, dynamic> analysis,
+  }) {
+    final selectedIds = (analysis['selected_comment_ids'] as List? ?? []).cast<String>().toSet();
+    final selectedComments =
+        posts.expand((p) => _flattenComments(p.comments)).where((c) => selectedIds.contains(c.id)).take(16).toList();
+
+    final postBody = _truncateTo(
+      posts.map((p) => _sanitizeText(p.selftext)).join('\n\n---\n\n'),
+      2400,
+    );
+
+    final analysisJson = _truncateTo(jsonEncode(analysis), 1200);
+
+    const templateOverheadChars = 1000;
+    final commentBudgetChars =
+        (AppConstants.gemmaInputBudget * 4) - templateOverheadChars - postBody.length - analysisJson.length;
+
+    var usedChars = 0;
+    final fittedComments = <Map<String, dynamic>>[];
+    for (final c in selectedComments) {
+      final commentJson = _toGemmaPromptCommentJson(c, maxBodyChars: 280);
+      final commentStr = jsonEncode(commentJson);
+      if (usedChars + commentStr.length > commentBudgetChars.clamp(400, 20000)) {
+        break;
+      }
+      fittedComments.add(commentJson);
+      usedChars += commentStr.length;
+    }
+
+    final tone = analysis['tone'] as String? ?? 'talk_show';
+
+    const schema = '''Return only a JSON array. No markdown. No explanation.
+Each element:
+{
+  "speaker_id": "op"|"speaker_2"|...,
+  "text": "spoken dialogue",
+  "delivery": {
+    "pace": "normal"|"slow"|"fast",
+    "emotion": "calm"|"anxious"|"frustrated"|"upset"|"excited"|"sarcastic"|"empathetic",
+    "pause_before_ms": 0,
+    "overlap_previous": false
+  }
+}
+Rules:
+- OP tells story in their own voice. No narrator.
+- Interject commenters at dramatically appropriate moments, not just at the end.
+- Delivery must match tone: TONE_PLACEHOLDER
+- Preserve each speaker's personality from the analysis.
+- Target 8-12 minutes of audio at ~130 words per minute.''';
+
+    return '${schema.replaceAll('TONE_PLACEHOLDER', tone)}\n\n'
+        'ANALYSIS:\n$analysisJson\n\n'
+        'POST:\n$postBody\n\n'
+        'SELECTED COMMENTS:\n${jsonEncode(fittedComments)}';
+  }
+
   int _estimateTokens(String text) => (text.length / 4).ceil();
 
   List<RedditComment> _truncateCommentsToFitBudget({
@@ -218,6 +362,11 @@ class LlmPromptBuilder {
     return _sanitizeText(post.selftext);
   }
 
+  String _truncateTo(String text, int maxChars) {
+    if (text.length <= maxChars) return text;
+    return '${text.substring(0, maxChars)}…';
+  }
+
   Map<String, dynamic> _toPromptCommentJson(RedditComment comment) {
     return {
       'id': comment.id,
@@ -231,6 +380,15 @@ class LlmPromptBuilder {
       'replies': const <Map<String, dynamic>>[],
       'is_op': comment.isOp,
     };
+  }
+
+  Map<String, dynamic> _toGemmaPromptCommentJson(
+    RedditComment comment, {
+    required int maxBodyChars,
+  }) {
+    final json = _toPromptCommentJson(comment);
+    json['body'] = _truncateTo(json['body'] as String, maxBodyChars);
+    return json;
   }
 
   String _sanitizeText(String value) {

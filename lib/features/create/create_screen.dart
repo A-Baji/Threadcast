@@ -42,7 +42,7 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               "Your device's built-in AI isn't available, so Threadcast needs "
               'to download a local AI model the first time you generate a podcast.',
